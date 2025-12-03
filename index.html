@@ -545,7 +545,7 @@
                 <div class="nav-section">
                     <div class="nav-section-title">Media Service</div>
                     <a href="#movies-api" class="nav-link sub">Movies</a>
-                    <a href="#home-api" class="nav-link sub">Home Page</a>
+                    <a href="#sections-api" class="nav-link sub">Sections</a>
                     <a href="#assets-api" class="nav-link sub">Assets</a>
                     <a href="#references-api" class="nav-link sub">References</a>
                     <a href="#people-api" class="nav-link sub">People</a>
@@ -568,7 +568,15 @@
             <section id="base-url" class="section">
                 <h2>Base URL</h2>
                 <p>All API endpoints are accessible through the unified development server:</p>
-                <pre><code class="language-bash">Base URL: https://api.vaki-ott.com</code></pre>
+                <pre><code class="language-bash">Base URL: https://api.vaki.com</code></pre>
+                <div class="info-box">
+                    <strong>Route Prefixes:</strong>
+                    <ul>
+                        <li><strong>User Service:</strong> Routes are mounted directly (e.g., <code>/api/auth</code>, <code>/api/otp</code>, <code>/api/users</code>)</li>
+                        <li><strong>Media Service:</strong> Routes are prefixed with <code>/api/media/</code> (e.g., <code>/api/media/movies</code>, <code>/api/media/sections</code>)</li>
+                        <li><strong>Admin Service:</strong> Routes are prefixed with <code>/api/admin/</code> (e.g., <code>/api/admin/movies</code>)</li>
+                    </ul>
+                </div>
             </section>
 
             <!-- Authentication -->
@@ -594,6 +602,9 @@
                     <div class="endpoint-header">
                         <span class="badge badge-post">POST</span>
                         <span class="endpoint-path">/api/otp/email</span>
+                    </div>
+                    <div class="info-box" style="margin-top: 0.5rem; margin-bottom: 1rem;">
+                        <strong>Note:</strong> User Service routes (OTP, Auth, Users) are mounted directly without service prefix.
                     </div>
                     <div class="endpoint-description">Request an OTP via email</div>
                     <h4>Request Body:</h4>
@@ -644,7 +655,7 @@
   "message": "OTP verified successfully",
   "data": {
     "verified": true
-  } 
+  }
 }</code></pre>
                 </div>
             </section>
@@ -1005,11 +1016,14 @@
             <section id="movies-api" class="section">
                 <h2>Movies API</h2>
                 <p>Public catalog endpoints for browsing and viewing movie content. No authentication required.</p>
+                <div class="info-box" style="margin-bottom: 1.5rem;">
+                    <strong>Route Prefix:</strong> All Media Service routes are prefixed with <code>/api/media/</code>
+                </div>
 
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/movies</span>
+                        <span class="endpoint-path">/api/media/movies</span>
                     </div>
                     <div class="endpoint-description">Get paginated list of movies with filters</div>
                     <h4>Query Parameters:</h4>
@@ -1050,7 +1064,7 @@
                         </tbody>
                     </table>
                     <h4>Example:</h4>
-                    <pre><code class="language-bash">GET /api/movies?page=1&limit=12&status=published</code></pre>
+                    <pre><code class="language-bash">GET /api/media/movies?page=1&limit=12&status=published</code></pre>
                     <h4>Response:</h4>
                     <pre><code class="language-json">{
   "success": true,
@@ -1084,11 +1098,11 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/movies/:id</span>
+                        <span class="endpoint-path">/api/media/movies/:id</span>
                     </div>
                     <div class="endpoint-description">Get detailed movie information by ID</div>
                     <h4>Example:</h4>
-                    <pre><code class="language-bash">GET /api/movies/abc123</code></pre>
+                    <pre><code class="language-bash">GET /api/media/movies/abc123</code></pre>
                     <h4>Response:</h4>
                     <pre><code class="language-json">{
   "success": true,
@@ -1159,7 +1173,7 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/movies/:id/with-photos</span>
+                        <span class="endpoint-path">/api/media/movies/:id/with-photos</span>
                     </div>
                     <div class="endpoint-description">Get movie details with all media assets</div>
                     <h4>Response:</h4>
@@ -1196,7 +1210,7 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/movies/:id/video-status</span>
+                        <span class="endpoint-path">/api/media/movies/:id/video-status</span>
                     </div>
                     <div class="endpoint-description">Get video transcoding status and thumbnails</div>
                     <h4>Response:</h4>
@@ -1231,7 +1245,7 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/movies/:id/image-status</span>
+                        <span class="endpoint-path">/api/media/movies/:id/image-status</span>
                     </div>
                     <div class="endpoint-description">Get poster/backdrop status grouped by category/resolution</div>
                     <h4>Response:</h4>
@@ -1269,17 +1283,21 @@
                 </div>
             </section>
 
-            <!-- Media Service: Home API -->
-            <section id="home-api" class="section">
-                <h2>Home Page API</h2>
-                <p>Get home page sections with populated movie data for different platforms.</p>
+            <!-- Media Service: Sections API -->
+            <section id="sections-api" class="section">
+                <h2>Sections API</h2>
+                <p>Get sections with populated movie data for different contexts and platforms. Supports multiple contexts: home, movies, short films, documentaries, bts, search, and profile.</p>
+
+                <div class="info-box warning">
+                    <strong>Deprecated:</strong> The <code>/api/media/home</code> endpoint is deprecated. Use <code>/api/media/sections?context=home&platform=...</code> instead. The old endpoint still works for backward compatibility but redirects to the new endpoint.
+                </div>
 
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/home</span>
+                        <span class="endpoint-path">/api/media/sections</span>
                     </div>
-                    <div class="endpoint-description">Get active home page sections for a platform</div>
+                    <div class="endpoint-description">Get active sections for a context and platform</div>
                     <h4>Query Parameters:</h4>
                     <table>
                         <thead>
@@ -1292,15 +1310,21 @@
                         </thead>
                         <tbody>
                             <tr>
+                                <td><code>context</code></td>
+                                <td>string</td>
+                                <td>Yes</td>
+                                <td>Section context: <code>home</code>, <code>movies</code>, <code>short_films</code> (or <code>short-films</code>), <code>documentaries</code>, <code>bts</code>, <code>search</code>, or <code>profile</code></td>
+                            </tr>
+                            <tr>
                                 <td><code>platform</code></td>
                                 <td>string</td>
                                 <td>Yes</td>
-                                <td>Platform filter: <code>web</code> or <code>mobile</code> or <code>tv</code></td>
+                                <td>Platform filter: <code>web</code>, <code>mobile</code>, or <code>tv</code></td>
                             </tr>
                         </tbody>
                     </table>
                     <h4>Example:</h4>
-                    <pre><code class="language-bash">GET /api/home?platform=web</code></pre>
+                    <pre><code class="language-bash">GET /api/media/sections?context=home&platform=web</code></pre>
                     <h4>Response Structure:</h4>
                     <pre><code class="language-json">{
   "success": true,
@@ -1311,6 +1335,7 @@
       "title": "Trending Now",
       "description": "Popular movies this week",
       "platform": "web",
+      "context": "home",
       "sectionType": "carousel",
       "displayOrder": 0,
       "priority": 0,
@@ -1379,8 +1404,48 @@
                             </tr>
                         </tbody>
                     </table>
+                    <h4>Context Values:</h4>
+                    <p>The <code>context</code> parameter determines which sections to retrieve:</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Value</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>home</code></td>
+                                <td>Home page sections</td>
+                            </tr>
+                            <tr>
+                                <td><code>movies</code></td>
+                                <td>Movies page sections</td>
+                            </tr>
+                            <tr>
+                                <td><code>short_films</code> or <code>short-films</code></td>
+                                <td>Short films page sections (both formats accepted)</td>
+                            </tr>
+                            <tr>
+                                <td><code>documentaries</code></td>
+                                <td>Documentaries page sections</td>
+                            </tr>
+                            <tr>
+                                <td><code>bts</code></td>
+                                <td>Behind the scenes sections</td>
+                            </tr>
+                            <tr>
+                                <td><code>search</code></td>
+                                <td>Search page sections</td>
+                            </tr>
+                            <tr>
+                                <td><code>profile</code></td>
+                                <td>Profile page sections</td>
+                            </tr>
+                        </tbody>
+                    </table>
                     <div class="info-box">
-                        <strong>Note:</strong> Returns only active sections that respect <code>startDate</code> and <code>endDate</code> scheduling. Sections are sorted by <code>displayOrder</code> (ascending), then <code>priority</code> (descending).
+                        <strong>Note:</strong> Returns only active sections that respect <code>startDate</code> and <code>endDate</code> scheduling. Sections are sorted by <code>displayOrder</code> (ascending), then <code>priority</code> (descending). Sections with <code>platform=web</code> are shown on all platforms.
                     </div>
                 </div>
             </section>
@@ -1393,7 +1458,7 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/assets</span>
+                        <span class="endpoint-path">/api/media/assets</span>
                     </div>
                     <div class="endpoint-description">Get media assets by entity type and ID</div>
                     <h4>Query Parameters:</h4>
@@ -1422,7 +1487,7 @@
                         </tbody>
                     </table>
                     <h4>Example:</h4>
-                    <pre><code class="language-bash">GET /api/assets?entityType=movie&entityId=MOV123</code></pre>
+                    <pre><code class="language-bash">GET /api/media/assets?entityType=movie&entityId=MOV123</code></pre>
                     <h4>Response:</h4>
                     <pre><code class="language-json">{
   "success": true,
@@ -1458,11 +1523,11 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/assets/movies/:movieId</span>
+                        <span class="endpoint-path">/api/media/assets/movies/:movieId</span>
                     </div>
                     <div class="endpoint-description">Get movie assets grouped by type (posters, backdrops, videos, trailers, subtitles)</div>
                     <h4>Example:</h4>
-                    <pre><code class="language-bash">GET /api/assets/movies/abc123</code></pre>
+                    <pre><code class="language-bash">GET /api/media/assets/movies/abc123</code></pre>
                     <h4>Response:</h4>
                     <pre><code class="language-json">{
   "success": true,
@@ -1503,11 +1568,11 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/assets/:assetId/url</span>
+                        <span class="endpoint-path">/api/media/assets/:assetId/url</span>
                     </div>
                     <div class="endpoint-description">Get presigned CDN URL for an asset with expiry metadata</div>
                     <h4>Example:</h4>
-                    <pre><code class="language-bash">GET /api/assets/asset-123/url?expiresIn=3600</code></pre>
+                    <pre><code class="language-bash">GET /api/media/assets/asset-123/url?expiresIn=3600</code></pre>
                     <h4>Response:</h4>
                     <pre><code class="language-json">{
   "success": true,
@@ -1528,7 +1593,7 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/references/categories</span>
+                        <span class="endpoint-path">/api/media/references/categories</span>
                     </div>
                     <div class="endpoint-description">Get active content categories sorted by display order</div>
                     <h4>Response:</h4>
@@ -1551,7 +1616,7 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/references/genres</span>
+                        <span class="endpoint-path">/api/media/references/genres</span>
                     </div>
                     <div class="endpoint-description">Get genres with optional filters</div>
                     <h4>Query Parameters:</h4>
@@ -1595,7 +1660,7 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/references/genres/:id</span>
+                        <span class="endpoint-path">/api/media/references/genres/:id</span>
                     </div>
                     <div class="endpoint-description">Get single genre by ID</div>
                     <h4>Response:</h4>
@@ -1617,7 +1682,7 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/references/languages</span>
+                        <span class="endpoint-path">/api/media/references/languages</span>
                     </div>
                     <div class="endpoint-description">Get languages with optional search</div>
                     <h4>Query Parameters:</h4>
@@ -1655,7 +1720,7 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/references/languages/:id</span>
+                        <span class="endpoint-path">/api/media/references/languages/:id</span>
                     </div>
                     <div class="endpoint-description">Get single language by ID</div>
                     <h4>Response:</h4>
@@ -1676,7 +1741,7 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/references/content-ratings</span>
+                        <span class="endpoint-path">/api/media/references/content-ratings</span>
                     </div>
                     <div class="endpoint-description">Get all content ratings</div>
                     <h4>Response:</h4>
@@ -1697,7 +1762,7 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/references/content-ratings/:id</span>
+                        <span class="endpoint-path">/api/media/references/content-ratings/:id</span>
                     </div>
                     <div class="endpoint-description">Get single content rating by ID</div>
                     <h4>Response:</h4>
@@ -1718,7 +1783,7 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/references/stream-videos</span>
+                        <span class="endpoint-path">/api/media/references/stream-videos</span>
                     </div>
                     <div class="endpoint-description">Get stream videos with optional filters</div>
                     <h4>Query Parameters:</h4>
@@ -1764,7 +1829,7 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/references/movies/:movieId/stream-videos</span>
+                        <span class="endpoint-path">/api/media/references/movies/:movieId/stream-videos</span>
                     </div>
                     <div class="endpoint-description">Get stream videos for a specific movie</div>
                     <h4>Response:</h4>
@@ -1788,7 +1853,7 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/references/directors</span>
+                        <span class="endpoint-path">/api/media/references/directors</span>
                     </div>
                     <div class="endpoint-description">Search directors</div>
                     <h4>Query Parameters:</h4>
@@ -1830,7 +1895,7 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/references/directors/:id</span>
+                        <span class="endpoint-path">/api/media/references/directors/:id</span>
                     </div>
                     <div class="endpoint-description">Get director profile by ID</div>
                     <h4>Response:</h4>
@@ -1850,7 +1915,7 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/references/actors</span>
+                        <span class="endpoint-path">/api/media/references/actors</span>
                     </div>
                     <div class="endpoint-description">Search actors (includes media asset URL)</div>
                     <h4>Query Parameters:</h4>
@@ -1893,7 +1958,7 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/references/actors/:id</span>
+                        <span class="endpoint-path">/api/media/references/actors/:id</span>
                     </div>
                     <div class="endpoint-description">Get actor profile by ID (includes media asset URL)</div>
                     <h4>Response:</h4>
@@ -1914,7 +1979,7 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/references/producers</span>
+                        <span class="endpoint-path">/api/media/references/producers</span>
                     </div>
                     <div class="endpoint-description">Search producers</div>
                     <h4>Query Parameters:</h4>
@@ -1956,7 +2021,7 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/references/producers/:id</span>
+                        <span class="endpoint-path">/api/media/references/producers/:id</span>
                     </div>
                     <div class="endpoint-description">Get producer profile by ID</div>
                     <h4>Response:</h4>
@@ -1982,7 +2047,7 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/people/search</span>
+                        <span class="endpoint-path">/api/media/people/search</span>
                     </div>
                     <div class="endpoint-description">Search across all people types</div>
                     <h4>Query Parameters:</h4>
@@ -2011,7 +2076,7 @@
                         </tbody>
                     </table>
                     <h4>Example:</h4>
-                    <pre><code class="language-bash">GET /api/people/search?q=raj&type=directors</code></pre>
+                    <pre><code class="language-bash">GET /api/media/people/search?q=raj&type=directors</code></pre>
                     <p>Returns up to 10 matches per type.</p>
                     <h4>Response:</h4>
                     <pre><code class="language-json">{
@@ -2046,7 +2111,7 @@
                 <p>All API endpoints return errors in a consistent format:</p>
                 <pre><code class="language-json">{
   "error": "Error message",
-  "path": "/api/movies",
+  "path": "/api/media/movies",
   "method": "GET",
   "status": 404,
   "timestamp": "2025-01-15T10:30:00.000Z"
@@ -2146,17 +2211,22 @@ async function login(identifier, code) {
 // Get movies (public endpoint)
 async function getMovies(page = 1, limit = 20) {
   const response = await fetch(
-    `${API_BASE_URL}/api/movies?page=${page}&limit=${limit}&status=published`
+    `${API_BASE_URL}/api/media/movies?page=${page}&limit=${limit}&status=published`
   );
   return response.json();
 }
 
-// Get home sections
-async function getHomeSections(platform = 'web') {
+// Get sections for a context and platform
+async function getSections(context = 'home', platform = 'web') {
   const response = await fetch(
-    `${API_BASE_URL}/api/home?platform=${platform}`
+    `${API_BASE_URL}/api/media/sections?context=${context}&platform=${platform}`
   );
   return response.json();
+}
+
+// Get home sections (backward compatibility - uses new endpoint)
+async function getHomeSections(platform = 'web') {
+  return getSections('home', platform);
 }
 
 // Authenticated request helper
