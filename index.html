@@ -1,0 +1,2188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Frontend Integration Guide - Vaki OTT API</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #635bff;
+            --primary-dark: #5851ea;
+            --secondary: #0a2540;
+            --text: #0a2540;
+            --text-light: #425466;
+            --border: #e3e8ef;
+            --bg: #ffffff;
+            --bg-light: #f6f9fc;
+            --code-bg: #1e1e1e;
+            --sidebar-width: 280px;
+            --header-height: 64px;
+        }
+
+        [data-theme="dark"] {
+            --primary: #7c75ff;
+            --primary-dark: #6b64ff;
+            --secondary: #1a2a3a;
+            --text: #e4e6eb;
+            --text-light: #b0b3b8;
+            --border: #3a3b3c;
+            --bg: #18191a;
+            --bg-light: #242526;
+            --code-bg: #1e1e1e;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            color: var(--text);
+            background: var(--bg);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* Header */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: var(--header-height);
+            background: var(--bg);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 2rem;
+            z-index: 1000;
+        }
+
+        .header h1 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: var(--text);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .theme-toggle {
+            background: transparent;
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 0.5rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--text);
+            transition: all 0.2s;
+            width: 36px;
+            height: 36px;
+        }
+
+        .theme-toggle:hover {
+            background: var(--bg-light);
+            border-color: var(--primary);
+        }
+
+        .theme-toggle svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* Layout */
+        .container {
+            display: flex;
+            margin-top: var(--header-height);
+            min-height: calc(100vh - var(--header-height));
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: var(--sidebar-width);
+            background: var(--bg);
+            border-right: 1px solid var(--border);
+            position: fixed;
+            left: 0;
+            top: var(--header-height);
+            bottom: 0;
+            overflow-y: auto;
+            padding: 2rem 0;
+            z-index: 100;
+        }
+
+        .sidebar-nav {
+            padding: 0 1.5rem;
+        }
+
+        .nav-section {
+            margin-bottom: 2rem;
+        }
+
+        .nav-section-title {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-light);
+            margin-bottom: 0.75rem;
+            padding: 0 1.5rem;
+        }
+
+        .nav-link {
+            display: block;
+            padding: 0.5rem 1.5rem;
+            color: var(--text);
+            text-decoration: none;
+            font-size: 0.875rem;
+            border-left: 3px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .nav-link:hover {
+            background: var(--bg-light);
+            color: var(--primary);
+        }
+
+        .nav-link.active {
+            border-left-color: var(--primary);
+            background: var(--bg-light);
+            color: var(--primary);
+            font-weight: 500;
+        }
+
+        .nav-link.sub {
+            padding-left: 2.5rem;
+            font-size: 0.8125rem;
+            color: var(--text-light);
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: var(--sidebar-width);
+            padding: 3rem 4rem;
+            max-width: 900px;
+        }
+
+        .section {
+            margin-bottom: 4rem;
+            scroll-margin-top: calc(var(--header-height) + 2rem);
+        }
+
+        .section h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1rem;
+            color: var(--text);
+        }
+
+        .section h2 {
+            font-size: 1.75rem;
+            font-weight: 600;
+            margin-top: 3rem;
+            margin-bottom: 1.5rem;
+            color: var(--text);
+            padding-bottom: 0.5rem;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .section h3 {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            color: var(--text);
+        }
+
+        .section p {
+            margin-bottom: 1rem;
+            color: var(--text-light);
+        }
+
+        .section ul, .section ol {
+            margin-left: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--text-light);
+        }
+
+        .section li {
+            margin-bottom: 0.5rem;
+        }
+
+        /* Code Blocks */
+        pre {
+            background: var(--code-bg);
+            border-radius: 8px;
+            padding: 1.5rem;
+            overflow-x: auto;
+            margin: 1.5rem 0;
+            border: 1px solid var(--border);
+        }
+
+        code {
+            font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+            font-size: 0.875rem;
+            line-height: 1.6;
+        }
+
+        pre code {
+            color: #d4d4d4;
+        }
+
+        .inline-code {
+            background: var(--bg-light);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-size: 0.875em;
+            color: var(--primary);
+            border: 1px solid var(--border);
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1.5rem 0;
+            font-size: 0.875rem;
+        }
+
+        table th {
+            background: var(--bg-light);
+            padding: 0.75rem 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: var(--text);
+            border-bottom: 2px solid var(--border);
+        }
+
+        table td {
+            padding: 0.75rem 1rem;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-light);
+        }
+
+        table tr:hover {
+            background: var(--bg-light);
+        }
+
+        /* Badges */
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .badge-get {
+            background: #e3f2fd;
+            color: #1976d2;
+        }
+
+        [data-theme="dark"] .badge-get {
+            background: #1e3a5f;
+            color: #64b5f6;
+        }
+
+        .badge-post {
+            background: #e8f5e9;
+            color: #388e3c;
+        }
+
+        [data-theme="dark"] .badge-post {
+            background: #1e3a2e;
+            color: #81c784;
+        }
+
+        .badge-put {
+            background: #fff3e0;
+            color: #f57c00;
+        }
+
+        [data-theme="dark"] .badge-put {
+            background: #4a3a1e;
+            color: #ffb74d;
+        }
+
+        .badge-delete {
+            background: #ffebee;
+            color: #d32f2f;
+        }
+
+        [data-theme="dark"] .badge-delete {
+            background: #4a1e1e;
+            color: #e57373;
+        }
+
+        .badge-patch {
+            background: #f3e5f5;
+            color: #7b1fa2;
+        }
+
+        [data-theme="dark"] .badge-patch {
+            background: #3a1e3a;
+            color: #ba68c8;
+        }
+
+        /* Endpoint Cards */
+        .endpoint {
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            margin: 1.5rem 0;
+            transition: all 0.2s;
+        }
+
+        .endpoint:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        .endpoint-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .endpoint-method {
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+
+        .endpoint-path {
+            font-family: 'SF Mono', Monaco, monospace;
+            color: var(--text);
+            font-size: 0.9375rem;
+        }
+
+        .endpoint-description {
+            color: var(--text-light);
+            margin-bottom: 1rem;
+        }
+
+        /* Info Boxes */
+        .info-box {
+            background: #e3f2fd;
+            border-left: 4px solid #2196f3;
+            padding: 1rem 1.5rem;
+            border-radius: 4px;
+            margin: 1.5rem 0;
+        }
+
+        [data-theme="dark"] .info-box {
+            background: #1e3a5f;
+            color: #e4e6eb;
+        }
+
+        .info-box.warning {
+            background: #fff3e0;
+            border-left-color: #ff9800;
+        }
+
+        [data-theme="dark"] .info-box.warning {
+            background: #4a3a1e;
+            color: #e4e6eb;
+        }
+
+        .info-box.success {
+            background: #e8f5e9;
+            border-left-color: #4caf50;
+        }
+
+        [data-theme="dark"] .info-box.success {
+            background: #1e3a2e;
+            color: #e4e6eb;
+        }
+
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s;
+            }
+
+            .sidebar.open {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 2rem;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .header {
+                padding: 0 1rem;
+            }
+
+            .main-content {
+                padding: 1.5rem;
+            }
+
+            .section h1 {
+                font-size: 2rem;
+            }
+        }
+
+        /* Scrollbar */
+        .sidebar::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .sidebar::-webkit-scrollbar-track {
+            background: var(--bg-light);
+        }
+
+        .sidebar::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        .sidebar::-webkit-scrollbar-thumb:hover {
+            background: var(--text-light);
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <h1>Frontend Integration Guide</h1>
+        <div class="header-actions">
+            <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode">
+                <svg id="sunIcon" style="display: none;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+                </svg>
+                <svg id="moonIcon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <div class="container">
+        <nav class="sidebar" id="sidebar">
+            <div class="sidebar-nav">
+                <div class="nav-section">
+                    <div class="nav-section-title">Getting Started</div>
+                    <a href="#overview" class="nav-link">Overview</a>
+                    <a href="#base-url" class="nav-link">Base URL</a>
+                    <a href="#authentication" class="nav-link">Authentication</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">User Service</div>
+                    <a href="#otp-api" class="nav-link sub">OTP API</a>
+                    <a href="#auth-api" class="nav-link sub">Authentication</a>
+                    <a href="#users-api" class="nav-link sub">Users & Profiles</a>
+                </div>
+                <div class="nav-section">
+                    <div class="nav-section-title">Media Service</div>
+                    <a href="#movies-api" class="nav-link sub">Movies</a>
+                    <a href="#home-api" class="nav-link sub">Home Page</a>
+                    <a href="#assets-api" class="nav-link sub">Assets</a>
+                    <a href="#references-api" class="nav-link sub">References</a>
+                    <a href="#people-api" class="nav-link sub">People</a>
+                </div>
+            </div>
+        </nav>
+
+        <main class="main-content">
+            <!-- Overview -->
+            <section id="overview" class="section">
+                <h1>Frontend Integration Guide</h1>
+                <p>This guide provides essential API documentation for frontend developers integrating with the Vaki OTT Platform. It focuses on the <strong>Media Service</strong> and <strong>User Service</strong> routes that are most commonly used by frontend applications.</p>
+                
+                <div class="info-box">
+                    <strong>Note:</strong> This documentation covers only the essential endpoints for frontend integration. For complete API documentation, see the main documentation.
+                </div>
+            </section>
+
+            <!-- Base URL -->
+            <section id="base-url" class="section">
+                <h2>Base URL</h2>
+                <p>All API endpoints are accessible through the unified development server:</p>
+                <pre><code class="language-bash">Base URL: https://api.vaki.com</code></pre>
+            </section>
+
+            <!-- Authentication -->
+            <section id="authentication" class="section">
+                <h2>Authentication</h2>
+                <p>The API uses JWT (JSON Web Tokens) for authentication. There are two types of tokens:</p>
+                
+                <h3>Consumer JWT</h3>
+                <p>Used for user-facing endpoints. Obtained through OTP login (see <a href="#auth-api">Authentication API</a>).</p>
+                <p>Include in requests as:</p>
+                <pre><code class="language-javascript">Authorization: Bearer &lt;token&gt;</code></pre>
+
+                <h3>Token Refresh</h3>
+                <p>Access tokens expire after a set period. Use the refresh token to obtain a new access token without requiring the user to log in again.</p>
+            </section>
+
+            <!-- User Service: OTP API -->
+            <section id="otp-api" class="section">
+                <h2>OTP API</h2>
+                <p>Request and verify OTP (One-Time Password) for user authentication via email or SMS.</p>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-post">POST</span>
+                        <span class="endpoint-path">/api/otp/email</span>
+                    </div>
+                    <div class="endpoint-description">Request an OTP via email</div>
+                    <h4>Request Body:</h4>
+                    <pre><code class="language-json">{
+  "email": "user@example.com",
+  "purpose": "login" // optional
+}</code></pre>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "message": "OTP sent to email"
+}</code></pre>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-post">POST</span>
+                        <span class="endpoint-path">/api/otp/sms</span>
+                    </div>
+                    <div class="endpoint-description">Request an OTP via SMS</div>
+                    <h4>Request Body:</h4>
+                    <pre><code class="language-json">{
+  "phoneNumber": "+1234567890",
+  "purpose": "login" // optional
+}</code></pre>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "message": "OTP sent to phone number"
+}</code></pre>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-post">POST</span>
+                        <span class="endpoint-path">/api/otp/verify</span>
+                    </div>
+                    <div class="endpoint-description">Verify OTP code</div>
+                    <h4>Request Body:</h4>
+                    <pre><code class="language-json">{
+  "identifier": "user@example.com", // email or phone
+  "code": "123456",
+  "purpose": "login" // optional
+}</code></pre>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "message": "OTP verified successfully",
+  "data": {
+    "verified": true
+  }
+}</code></pre>
+                </div>
+            </section>
+
+            <!-- User Service: Auth API -->
+            <section id="auth-api" class="section">
+                <h2>Authentication API</h2>
+                <p>Handle user login, token refresh, logout, and session management.</p>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-post">POST</span>
+                        <span class="endpoint-path">/api/auth/login</span>
+                    </div>
+                    <div class="endpoint-description">Login with OTP (Email or SMS)</div>
+                    <h4>Request Body:</h4>
+                    <pre><code class="language-json">{
+  "identifier": "user@example.com",
+  "code": "123456",
+  "deviceName": "Chrome Browser", // optional
+  "deviceType": "web", // optional: web, mobile, tv
+  "deviceId": "device-uuid", // optional
+  "profileId": "profile-uuid" // optional
+}</code></pre>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "message": "Login successful",
+  "data": {
+    "tokens": {
+      "accessToken": "eyJhbGciOiJIUzI1NiIs...",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIs...",
+      "expiresIn": 3600
+    },
+    "user": {
+      "id": "user-uuid",
+      "email": "user@example.com",
+      "phoneNumber": "+1234567890",
+      "status": "active"
+    },
+    "profile": {
+      "id": "profile-uuid",
+      "name": "John's Profile",
+      "isKidsProfile": false
+    },
+    "profiles": [
+      {
+        "id": "profile-uuid",
+        "name": "John's Profile",
+        "isKidsProfile": false
+      }
+    ],
+    "sessionId": "session-uuid"
+  }
+}</code></pre>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-post">POST</span>
+                        <span class="endpoint-path">/api/auth/refresh</span>
+                    </div>
+                    <div class="endpoint-description">Refresh access token</div>
+                    <h4>Request Body:</h4>
+                    <pre><code class="language-json">{
+  "refreshToken": "eyJhbGciOiJIUzI1NiIs...",
+  "profileId": "profile-uuid" // optional
+}</code></pre>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "tokens": {
+      "accessToken": "eyJhbGciOiJIUzI1NiIs...",
+      "refreshToken": "eyJhbGciOiJIUzI1NiIs...",
+      "expiresIn": 3600
+    }
+  }
+}</code></pre>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-post">POST</span>
+                        <span class="endpoint-path">/api/auth/logout</span>
+                    </div>
+                    <div class="endpoint-description">Logout and revoke session</div>
+                    <h4>Request Body:</h4>
+                    <pre><code class="language-json">{
+  "refreshToken": "eyJhbGciOiJIUzI1NiIs..." // optional if using Authorization header
+}</code></pre>
+                    <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span> (optional)</p>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "message": "Logout successful"
+}</code></pre>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">GET</span>
+                        <span class="endpoint-path">/api/auth/me</span>
+                    </div>
+                    <div class="endpoint-description">Get current authenticated user</div>
+                    <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span></p>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "id": "user-uuid",
+    "email": "user@example.com",
+    "phoneNumber": "+1234567890",
+    "status": "active",
+    "profiles": [
+      {
+        "id": "profile-uuid",
+        "name": "John's Profile",
+        "isKidsProfile": false,
+        "maxContentRating": "PG-13",
+        "profilePictureUrl": "https://cdn.example.com/avatars/profile-uuid.jpg",
+        "country": "US"
+      }
+    ]
+  }
+}</code></pre>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">GET</span>
+                        <span class="endpoint-path">/api/auth/sessions</span>
+                    </div>
+                    <div class="endpoint-description">Get all active sessions/devices for current user</div>
+                    <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span></p>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": [
+    {
+      "id": "session-uuid",
+      "deviceName": "Chrome Browser",
+      "deviceType": "web",
+      "deviceId": "device-uuid",
+      "ipAddress": "192.168.1.1",
+      "lastActivityAt": "2025-01-15T10:30:00.000Z",
+      "isActive": true,
+      "expiresAt": "2025-02-15T10:30:00.000Z"
+    }
+  ]
+}</code></pre>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-delete">DELETE</span>
+                        <span class="endpoint-path">/api/auth/sessions/:sessionId</span>
+                    </div>
+                    <div class="endpoint-description">Revoke a specific session/device</div>
+                    <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span></p>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "message": "Session revoked successfully"
+}</code></pre>
+                </div>
+            </section>
+
+            <!-- User Service: Users API -->
+            <section id="users-api" class="section">
+                <h2>Users & Profiles API</h2>
+                <p>Manage user account settings and OTT profiles.</p>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">GET</span>
+                        <span class="endpoint-path">/api/users/me</span>
+                    </div>
+                    <div class="endpoint-description">Get current user account info and profiles</div>
+                    <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span></p>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "id": "user-uuid",
+    "email": "user@example.com",
+    "phoneNumber": "+1234567890",
+    "phoneNumberExtension": "+1",
+    "status": "active",
+    "lastLogin": "2025-01-15T10:30:00.000Z",
+    "createdAt": "2025-01-01T00:00:00.000Z",
+    "updatedAt": "2025-01-15T10:30:00.000Z",
+    "profiles": [
+      {
+        "id": "profile-uuid",
+        "name": "John's Profile",
+        "isKidsProfile": false,
+        "maxContentRating": "PG-13",
+        "profilePictureUrl": "https://cdn.example.com/avatars/profile-uuid.jpg",
+        "country": "US",
+        "createdAt": "2025-01-01T00:00:00.000Z",
+        "updatedAt": "2025-01-15T10:30:00.000Z"
+      }
+    ]
+  }
+}</code></pre>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-patch">PATCH</span>
+                        <span class="endpoint-path">/api/users/me/settings</span>
+                    </div>
+                    <div class="endpoint-description">Update account settings (email, phone, extension)</div>
+                    <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span></p>
+                    <h4>Request Body:</h4>
+                    <pre><code class="language-json">{
+  "email": "newemail@example.com", // optional
+  "phoneNumber": "+1234567890", // optional
+  "phoneNumberExtension": "+1" // optional
+}</code></pre>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "message": "Account settings updated successfully",
+  "data": {
+    "id": "user-uuid",
+    "email": "newemail@example.com",
+    "phoneNumber": "+1234567890",
+    "phoneNumberExtension": "+1"
+  }
+}</code></pre>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">GET</span>
+                        <span class="endpoint-path">/api/users/me/profiles</span>
+                    </div>
+                    <div class="endpoint-description">List all OTT profiles for current user</div>
+                    <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span></p>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": [
+    {
+      "id": "profile-uuid",
+      "name": "John's Profile",
+      "isKidsProfile": false,
+      "maxContentRating": "PG-13",
+      "profilePictureUrl": "https://cdn.example.com/avatars/profile-uuid.jpg",
+      "country": "US",
+      "createdAt": "2025-01-01T00:00:00.000Z",
+      "updatedAt": "2025-01-15T10:30:00.000Z"
+    }
+  ]
+}</code></pre>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-post">POST</span>
+                        <span class="endpoint-path">/api/users/me/profiles</span>
+                    </div>
+                    <div class="endpoint-description">Create a new OTT profile</div>
+                    <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span></p>
+                    <h4>Request Body:</h4>
+                    <pre><code class="language-json">{
+  "name": "John's Profile",
+  "isKidsProfile": false, // optional
+  "maxContentRating": "PG-13", // optional
+  "country": "US" // optional
+}</code></pre>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "message": "Profile created successfully",
+  "data": {
+    "id": "profile-uuid",
+    "name": "John's Profile",
+    "isKidsProfile": false,
+    "maxContentRating": "PG-13",
+    "profilePictureUrl": null,
+    "country": "US",
+    "createdAt": "2025-01-15T10:30:00.000Z",
+    "updatedAt": "2025-01-15T10:30:00.000Z"
+  }
+}</code></pre>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-patch">PATCH</span>
+                        <span class="endpoint-path">/api/users/me/profiles/:profileId</span>
+                    </div>
+                    <div class="endpoint-description">Update an OTT profile</div>
+                    <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span></p>
+                    <h4>Request Body:</h4>
+                    <pre><code class="language-json">{
+  "name": "Updated Profile Name", // optional
+  "isKidsProfile": false, // optional
+  "maxContentRating": "PG-13", // optional
+  "country": "US" // optional
+}</code></pre>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "message": "Profile updated successfully",
+  "data": {
+    "id": "profile-uuid",
+    "name": "Updated Profile Name",
+    "isKidsProfile": false,
+    "maxContentRating": "PG-13",
+    "profilePictureUrl": "https://cdn.example.com/avatars/profile-uuid.jpg",
+    "country": "US",
+    "createdAt": "2025-01-01T00:00:00.000Z",
+    "updatedAt": "2025-01-15T10:30:00.000Z"
+  }
+}</code></pre>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-delete">DELETE</span>
+                        <span class="endpoint-path">/api/users/me/profiles/:profileId</span>
+                    </div>
+                    <div class="endpoint-description">Delete an OTT profile</div>
+                    <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span></p>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "message": "Profile deleted successfully"
+}</code></pre>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-post">POST</span>
+                        <span class="endpoint-path">/api/users/me/profiles/:profileId/avatar</span>
+                    </div>
+                    <div class="endpoint-description">Upload profile avatar</div>
+                    <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span></p>
+                    <p><strong>Content-Type:</strong> <span class="inline-code">multipart/form-data</span></p>
+                    <p><strong>Form Data:</strong> <span class="inline-code">avatar</span> (file)</p>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "message": "Avatar uploaded successfully",
+  "data": {
+    "id": "profile-uuid",
+    "profilePictureUrl": "https://cdn.example.com/avatars/profile-uuid.jpg"
+  }
+}</code></pre>
+                </div>
+            </section>
+
+            <!-- Media Service: Movies API -->
+            <section id="movies-api" class="section">
+                <h2>Movies API</h2>
+                <p>Public catalog endpoints for browsing and viewing movie content. No authentication required.</p>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">GET</span>
+                        <span class="endpoint-path">/api/movies</span>
+                    </div>
+                    <div class="endpoint-description">Get paginated list of movies with filters</div>
+                    <h4>Query Parameters:</h4>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Required</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>page</code></td>
+                                <td>number</td>
+                                <td>No</td>
+                                <td>Page number (default: 1)</td>
+                            </tr>
+                            <tr>
+                                <td><code>limit</code></td>
+                                <td>number</td>
+                                <td>No</td>
+                                <td>Items per page (default: 20, max: 100)</td>
+                            </tr>
+                            <tr>
+                                <td><code>status</code></td>
+                                <td>string</td>
+                                <td>No</td>
+                                <td>Filter by status: <code>draft</code>, <code>published</code>, <code>archived</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>search</code></td>
+                                <td>string</td>
+                                <td>No</td>
+                                <td>Search movies by title or description</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h4>Example:</h4>
+                    <pre><code class="language-bash">GET /api/movies?page=1&limit=12&status=published</code></pre>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "id": "movie-uuid",
+        "title": "Movie Title",
+        "status": "published",
+        "year": 2024,
+        "duration": 120,
+        "category": "Action",
+        "language": "English",
+        "rating": "PG-13",
+        "genres": ["Action", "Thriller"],
+        "posterUrl": "https://cdn.example.com/posters/movie-uuid.jpg",
+        "backdropUrl": "https://cdn.example.com/backdrops/movie-uuid.jpg",
+        "createdAt": "2025-01-01T00:00:00.000Z"
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 12,
+      "total": 100,
+      "totalPages": 9
+    }
+  }
+}</code></pre>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">GET</span>
+                        <span class="endpoint-path">/api/movies/:id</span>
+                    </div>
+                    <div class="endpoint-description">Get detailed movie information by ID</div>
+                    <h4>Example:</h4>
+                    <pre><code class="language-bash">GET /api/movies/abc123</code></pre>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "id": "movie-uuid",
+    "title": "Movie Title",
+    "slug": "movie-title",
+    "description": "Movie description",
+    "shortDescription": "Short description",
+    "year": 2024,
+    "duration": 120,
+    "releaseDate": "2024-01-15",
+    "category": {
+      "id": "category-uuid",
+      "name": "Action",
+      "slug": "action"
+    },
+    "language": {
+      "id": "language-uuid",
+      "name": "English",
+      "code": "en"
+    },
+    "rating": {
+      "id": "rating-uuid",
+      "name": "PG-13"
+    },
+    "genres": [
+      {
+        "id": "genre-uuid",
+        "name": "Action",
+        "slug": "action"
+      }
+    ],
+    "directors": [
+      {
+        "id": "director-uuid",
+        "name": "Director Name"
+      }
+    ],
+    "cast": [
+      {
+        "id": "cast-uuid",
+        "actorId": "actor-uuid",
+        "actorName": "Actor Name",
+        "characterName": "Character Name",
+        "isLead": true
+      }
+    ],
+    "producers": [
+      {
+        "id": "producer-uuid",
+        "name": "Producer Name"
+      }
+    ],
+    "media": [
+      {
+        "id": "asset-uuid",
+        "fileType": "poster",
+        "cdnUrl": "https://cdn.example.com/posters/movie-uuid.jpg",
+        "width": 1920,
+        "height": 1080
+      }
+    ]
+  }
+}</code></pre>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">GET</span>
+                        <span class="endpoint-path">/api/movies/:id/with-photos</span>
+                    </div>
+                    <div class="endpoint-description">Get movie details with all media assets</div>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "id": "movie-uuid",
+    "title": "Movie Title",
+    "description": "Movie description",
+    "year": 2024,
+    "duration": 120,
+    "category": { "id": "category-uuid", "name": "Action" },
+    "language": { "id": "language-uuid", "name": "English" },
+    "rating": { "id": "rating-uuid", "name": "PG-13" },
+    "genres": [{"id": "genre-uuid", "name": "Action"}],
+    "directors": [{"id": "director-uuid", "name": "Director Name"}],
+    "cast": [{"actorName": "Actor Name", "characterName": "Character"}],
+    "producers": [{"id": "producer-uuid", "name": "Producer Name"}],
+    "media": [
+      {
+        "id": "asset-uuid",
+        "fileType": "poster",
+        "fileCategory": "poster",
+        "cdnUrl": "https://cdn.example.com/posters/movie-uuid.jpg",
+        "width": 1920,
+        "height": 1080,
+        "imageResolution": "original"
+      }
+    ]
+  }
+}</code></pre>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">GET</span>
+                        <span class="endpoint-path">/api/movies/:id/video-status</span>
+                    </div>
+                    <div class="endpoint-description">Get video transcoding status and thumbnails</div>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "videos": [
+      {
+        "id": "asset-uuid",
+        "fileType": "video",
+        "fileCategory": "main",
+        "cdnUrl": "https://cdn.example.com/videos/movie-uuid.mp4",
+        "uploadStatus": "completed",
+        "processingStatus": "completed",
+        "width": 1920,
+        "height": 1080,
+        "duration": 7200
+      }
+    ],
+    "thumbnails": [
+      {
+        "id": "thumbnail-uuid",
+        "fileType": "photo",
+        "fileCategory": "thumbnail",
+        "cdnUrl": "https://cdn.example.com/thumbnails/movie-uuid.jpg"
+      }
+    ]
+  }
+}</code></pre>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">GET</span>
+                        <span class="endpoint-path">/api/movies/:id/image-status</span>
+                    </div>
+                    <div class="endpoint-description">Get poster/backdrop status grouped by category/resolution</div>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "posters": {
+      "poster": [
+        {
+          "id": "asset-uuid",
+          "fileType": "poster",
+          "fileCategory": "poster",
+          "cdnUrl": "https://cdn.example.com/posters/movie-uuid.jpg",
+          "width": 1920,
+          "height": 1080,
+          "imageResolution": "original"
+        }
+      ]
+    },
+    "backdrops": {
+      "backdrop": [
+        {
+          "id": "asset-uuid",
+          "fileType": "backdrop",
+          "fileCategory": "backdrop",
+          "cdnUrl": "https://cdn.example.com/backdrops/movie-uuid.jpg",
+          "width": 3840,
+          "height": 2160,
+          "imageResolution": "original"
+        }
+      ]
+    }
+  }
+}</code></pre>
+                </div>
+            </section>
+
+            <!-- Media Service: Home API -->
+            <section id="home-api" class="section">
+                <h2>Home Page API</h2>
+                <p>Get home page sections with populated movie data for different platforms.</p>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">GET</span>
+                        <span class="endpoint-path">/api/home</span>
+                    </div>
+                    <div class="endpoint-description">Get active home page sections for a platform</div>
+                    <h4>Query Parameters:</h4>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Required</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>platform</code></td>
+                                <td>string</td>
+                                <td>Yes</td>
+                                <td>Platform filter: <code>all</code>, <code>web</code>, <code>android</code>, <code>ios</code>, <code>tv</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h4>Example:</h4>
+                    <pre><code class="language-bash">GET /api/home?platform=web</code></pre>
+                    <h4>Response Structure:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": [
+    {
+      "id": "section-123",
+      "slug": "trending",
+      "title": "Trending Now",
+      "description": "Popular movies this week",
+      "platform": "all",
+      "sectionType": "carousel",
+      "displayOrder": 0,
+      "showViewAll": true,
+      "dataSourceType": "query", // or "manual"
+      "movies": [
+        {
+          "id": "movie-456",
+          "title": "Movie Title",
+          "slug": "movie-title",
+          "description": "Movie description",
+          "year": 2024,
+          "duration": 120,
+          "category": "Action",
+          "language": "English",
+          "rating": "PG-13",
+          "genres": ["Action", "Thriller"],
+          "posterUrl": "https://cdn.example.com/posters/movie-456.jpg",
+          "backdropUrl": "https://cdn.example.com/backdrops/movie-456.jpg"
+        }
+      ]
+    }
+  ]
+}</code></pre>
+                    <div class="info-box">
+                        <strong>Note:</strong> Returns only active sections that respect <code>startDate</code> and <code>endDate</code> scheduling. Sections are sorted by <code>displayOrder</code> (ascending), then <code>priority</code> (descending).
+                    </div>
+                </div>
+            </section>
+
+            <!-- Media Service: Assets API -->
+            <section id="assets-api" class="section">
+                <h2>Assets API</h2>
+                <p>Get media assets (posters, backdrops, videos, subtitles) for movies and other entities.</p>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">GET</span>
+                        <span class="endpoint-path">/api/assets</span>
+                    </div>
+                    <div class="endpoint-description">Get media assets by entity type and ID</div>
+                    <h4>Query Parameters:</h4>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Required</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>entityType</code></td>
+                                <td>string</td>
+                                <td>Yes</td>
+                                <td>Entity type (e.g., <code>movie</code>, <code>actor</code>)</td>
+                            </tr>
+                            <tr>
+                                <td><code>entityId</code></td>
+                                <td>string</td>
+                                <td>Yes</td>
+                                <td>Entity ID</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h4>Example:</h4>
+                    <pre><code class="language-bash">GET /api/assets?entityType=movie&entityId=MOV123</code></pre>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "assets": [
+      {
+        "id": "asset-uuid",
+        "entityType": "movie",
+        "entityId": "MOV123",
+        "fileType": "poster",
+        "fileCategory": "poster",
+        "fileName": "poster.jpg",
+        "cdnUrl": "https://cdn.example.com/posters/MOV123.jpg",
+        "width": 1920,
+        "height": 1080,
+        "fileSize": 524288,
+        "mimeType": "image/jpeg"
+      }
+    ],
+    "grouped": {
+      "poster": [
+        {
+          "id": "asset-uuid",
+          "fileType": "poster",
+          "cdnUrl": "https://cdn.example.com/posters/MOV123.jpg"
+        }
+      ]
+    }
+  }
+}</code></pre>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">GET</span>
+                        <span class="endpoint-path">/api/assets/movies/:movieId</span>
+                    </div>
+                    <div class="endpoint-description">Get movie assets grouped by type (posters, backdrops, videos, trailers, subtitles)</div>
+                    <h4>Example:</h4>
+                    <pre><code class="language-bash">GET /api/assets/movies/abc123</code></pre>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "assets": [
+      {
+        "id": "asset-uuid",
+        "fileType": "poster",
+        "cdnUrl": "https://cdn.example.com/posters/movie-uuid.jpg"
+      }
+    ],
+    "grouped": {
+      "posters": [
+        {
+          "id": "asset-uuid",
+          "fileType": "poster",
+          "fileCategory": "poster",
+          "cdnUrl": "https://cdn.example.com/posters/movie-uuid.jpg",
+          "width": 1920,
+          "height": 1080
+        }
+      ],
+      "backdrops": [
+        {
+          "id": "asset-uuid",
+          "fileType": "backdrop",
+          "cdnUrl": "https://cdn.example.com/backdrops/movie-uuid.jpg"
+        }
+      ],
+      "videos": [],
+      "trailers": [],
+      "subtitles": []
+    }
+  }
+}</code></pre>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">GET</span>
+                        <span class="endpoint-path">/api/assets/:assetId/url</span>
+                    </div>
+                    <div class="endpoint-description">Get presigned CDN URL for an asset with expiry metadata</div>
+                    <h4>Example:</h4>
+                    <pre><code class="language-bash">GET /api/assets/asset-123/url?expiresIn=3600</code></pre>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "url": "https://cdn.example.com/assets/asset-123.jpg",
+    "expiresAt": "2025-01-15T11:30:00.000Z"
+  }
+}</code></pre>
+                </div>
+            </section>
+
+            <!-- Media Service: References API -->
+            <section id="references-api" class="section">
+                <h2>References API</h2>
+                <p>Get metadata lookups for categories, genres, languages, content ratings, and people.</p>
+
+                <h3>Categories</h3>
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">GET</span>
+                        <span class="endpoint-path">/api/references/categories</span>
+                    </div>
+                    <div class="endpoint-description">Get active content categories sorted by display order</div>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": [
+    {
+      "id": "category-uuid",
+      "name": "Movies",
+      "slug": "movies",
+      "displayOrder": 1,
+      "isActive": true,
+      "createdAt": "2025-01-01T00:00:00.000Z"
+    }
+  ]
+}</code></pre>
+                </div>
+
+                <h3>Genres</h3>
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">GET</span>
+                        <span class="endpoint-path">/api/references/genres</span>
+                    </div>
+                    <div class="endpoint-description">Get genres with optional filters</div>
+                    <h4>Query Parameters:</h4>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>includeInactive</code></td>
+                                <td>boolean</td>
+                                <td>Include inactive genres</td>
+                            </tr>
+                            <tr>
+                                <td><code>search</code></td>
+                                <td>string</td>
+                                <td>Search genres by name</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": [
+    {
+      "id": "genre-uuid",
+      "name": "Action",
+      "slug": "action",
+      "displayOrder": 1,
+      "isActive": true,
+      "createdAt": "2025-01-01T00:00:00.000Z"
+    }
+  ]
+}</code></pre>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">GET</span>
+                        <span class="endpoint-path">/api/references/genres/:id</span>
+                    </div>
+                    <div class="endpoint-description">Get single genre by ID</div>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "id": "genre-uuid",
+    "name": "Action",
+    "slug": "action",
+    "displayOrder": 1,
+    "isActive": true,
+    "createdAt": "2025-01-01T00:00:00.000Z",
+    "updatedAt": "2025-01-01T00:00:00.000Z"
+  }
+}</code></pre>
+                </div>
+
+                <h3>Languages</h3>
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">GET</span>
+                        <span class="endpoint-path">/api/references/languages</span>
+                    </div>
+                    <div class="endpoint-description">Get languages with optional search</div>
+                    <h4>Query Parameters:</h4>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>search</code></td>
+                                <td>string</td>
+                                <td>Search languages by name or code</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": [
+    {
+      "id": "language-uuid",
+      "name": "English",
+      "code": "en",
+      "isActive": true,
+      "createdAt": "2025-01-01T00:00:00.000Z"
+    }
+  ]
+}</code></pre>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">GET</span>
+                        <span class="endpoint-path">/api/references/languages/:id</span>
+                    </div>
+                    <div class="endpoint-description">Get single language by ID</div>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "id": "language-uuid",
+    "name": "English",
+    "code": "en",
+    "isActive": true,
+    "createdAt": "2025-01-01T00:00:00.000Z",
+    "updatedAt": "2025-01-01T00:00:00.000Z"
+  }
+}</code></pre>
+                </div>
+
+                <h3>Content Ratings</h3>
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">GET</span>
+                        <span class="endpoint-path">/api/references/content-ratings</span>
+                    </div>
+                    <div class="endpoint-description">Get all content ratings</div>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": [
+    {
+      "id": "rating-uuid",
+      "name": "PG-13",
+      "description": "Parents Strongly Cautioned",
+      "isActive": true,
+      "createdAt": "2025-01-01T00:00:00.000Z"
+    }
+  ]
+}</code></pre>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">GET</span>
+                        <span class="endpoint-path">/api/references/content-ratings/:id</span>
+                    </div>
+                    <div class="endpoint-description">Get single content rating by ID</div>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "id": "rating-uuid",
+    "name": "PG-13",
+    "description": "Parents Strongly Cautioned",
+    "isActive": true,
+    "createdAt": "2025-01-01T00:00:00.000Z",
+    "updatedAt": "2025-01-01T00:00:00.000Z"
+  }
+}</code></pre>
+                </div>
+
+                <h3>Stream Videos</h3>
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">GET</span>
+                        <span class="endpoint-path">/api/references/stream-videos</span>
+                    </div>
+                    <div class="endpoint-description">Get stream videos with optional filters</div>
+                    <h4>Query Parameters:</h4>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>movieId</code></td>
+                                <td>string</td>
+                                <td>Filter by movie ID</td>
+                            </tr>
+                            <tr>
+                                <td><code>status</code></td>
+                                <td>string</td>
+                                <td>Filter by status</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": [
+    {
+      "id": "stream-video-uuid",
+      "movieId": "movie-uuid",
+      "videoId": "cloudflare-stream-video-id",
+      "status": "ready",
+      "duration": 7200,
+      "width": 1920,
+      "height": 1080,
+      "createdAt": "2025-01-01T00:00:00.000Z"
+    }
+  ]
+}</code></pre>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">GET</span>
+                        <span class="endpoint-path">/api/references/movies/:movieId/stream-videos</span>
+                    </div>
+                    <div class="endpoint-description">Get stream videos for a specific movie</div>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": [
+    {
+      "id": "stream-video-uuid",
+      "movieId": "movie-uuid",
+      "videoId": "cloudflare-stream-video-id",
+      "status": "ready",
+      "duration": 7200,
+      "width": 1920,
+      "height": 1080
+    }
+  ]
+}</code></pre>
+                </div>
+
+                <h3>People (Directors, Actors, Producers)</h3>
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">GET</span>
+                        <span class="endpoint-path">/api/references/directors</span>
+                    </div>
+                    <div class="endpoint-description">Search directors</div>
+                    <h4>Query Parameters:</h4>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>search</code></td>
+                                <td>string</td>
+                                <td>Search by name</td>
+                            </tr>
+                            <tr>
+                                <td><code>limit</code></td>
+                                <td>number</td>
+                                <td>Limit results</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": [
+    {
+      "id": "director-uuid",
+      "name": "Director Name",
+      "slug": "director-name",
+      "isActive": true
+    }
+  ]
+}</code></pre>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">GET</span>
+                        <span class="endpoint-path">/api/references/directors/:id</span>
+                    </div>
+                    <div class="endpoint-description">Get director profile by ID</div>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "id": "director-uuid",
+    "name": "Director Name",
+    "slug": "director-name",
+    "bio": "Director biography",
+    "isActive": true,
+    "createdAt": "2025-01-01T00:00:00.000Z"
+  }
+}</code></pre>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">GET</span>
+                        <span class="endpoint-path">/api/references/actors</span>
+                    </div>
+                    <div class="endpoint-description">Search actors (includes media asset URL)</div>
+                    <h4>Query Parameters:</h4>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>search</code></td>
+                                <td>string</td>
+                                <td>Search by name</td>
+                            </tr>
+                            <tr>
+                                <td><code>limit</code></td>
+                                <td>number</td>
+                                <td>Limit results</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": [
+    {
+      "id": "actor-uuid",
+      "name": "Actor Name",
+      "slug": "actor-name",
+      "isActive": true,
+      "mediaAssetUrl": "https://cdn.example.com/actors/actor-uuid.jpg"
+    }
+  ]
+}</code></pre>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">GET</span>
+                        <span class="endpoint-path">/api/references/actors/:id</span>
+                    </div>
+                    <div class="endpoint-description">Get actor profile by ID (includes media asset URL)</div>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "id": "actor-uuid",
+    "name": "Actor Name",
+    "slug": "actor-name",
+    "bio": "Actor biography",
+    "isActive": true,
+    "mediaAssetUrl": "https://cdn.example.com/actors/actor-uuid.jpg",
+    "createdAt": "2025-01-01T00:00:00.000Z"
+  }
+}</code></pre>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">GET</span>
+                        <span class="endpoint-path">/api/references/producers</span>
+                    </div>
+                    <div class="endpoint-description">Search producers</div>
+                    <h4>Query Parameters:</h4>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>search</code></td>
+                                <td>string</td>
+                                <td>Search by name</td>
+                            </tr>
+                            <tr>
+                                <td><code>limit</code></td>
+                                <td>number</td>
+                                <td>Limit results</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": [
+    {
+      "id": "producer-uuid",
+      "name": "Producer Name",
+      "slug": "producer-name",
+      "isActive": true
+    }
+  ]
+}</code></pre>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">GET</span>
+                        <span class="endpoint-path">/api/references/producers/:id</span>
+                    </div>
+                    <div class="endpoint-description">Get producer profile by ID</div>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "id": "producer-uuid",
+    "name": "Producer Name",
+    "slug": "producer-name",
+    "bio": "Producer biography",
+    "isActive": true,
+    "createdAt": "2025-01-01T00:00:00.000Z"
+  }
+}</code></pre>
+                </div>
+            </section>
+
+            <!-- Media Service: People API -->
+            <section id="people-api" class="section">
+                <h2>People Search API</h2>
+                <p>Unified search across directors, actors, and producers.</p>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">GET</span>
+                        <span class="endpoint-path">/api/people/search</span>
+                    </div>
+                    <div class="endpoint-description">Search across all people types</div>
+                    <h4>Query Parameters:</h4>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Required</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>q</code></td>
+                                <td>string</td>
+                                <td>Yes</td>
+                                <td>Search query</td>
+                            </tr>
+                            <tr>
+                                <td><code>type</code></td>
+                                <td>string</td>
+                                <td>No</td>
+                                <td>Filter by type: <code>all</code>, <code>directors</code>, <code>actors</code>, <code>producers</code> (default: <code>all</code>)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h4>Example:</h4>
+                    <pre><code class="language-bash">GET /api/people/search?q=raj&type=directors</code></pre>
+                    <p>Returns up to 10 matches per type.</p>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": [
+    {
+      "id": "director-uuid",
+      "name": "Raj Kumar",
+      "slug": "raj-kumar",
+      "type": "director"
+    },
+    {
+      "id": "actor-uuid",
+      "name": "Raj Kapoor",
+      "slug": "raj-kapoor",
+      "type": "actor"
+    },
+    {
+      "id": "producer-uuid",
+      "name": "Raj Productions",
+      "slug": "raj-productions",
+      "type": "producer"
+    }
+  ]
+}</code></pre>
+                </div>
+            </section>
+
+            <!-- Error Handling -->
+            <section id="error-handling" class="section">
+                <h2>Error Handling</h2>
+                <p>All API endpoints return errors in a consistent format:</p>
+                <pre><code class="language-json">{
+  "error": "Error message",
+  "path": "/api/movies",
+  "method": "GET",
+  "status": 404,
+  "timestamp": "2025-01-15T10:30:00.000Z"
+}</code></pre>
+
+                <h3>Common HTTP Status Codes</h3>
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Status Code</th>
+                            <th>Description</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><code>200</code></td>
+                            <td>Success</td>
+                        </tr>
+                        <tr>
+                            <td><code>201</code></td>
+                            <td>Created</td>
+                        </tr>
+                        <tr>
+                            <td><code>400</code></td>
+                            <td>Bad Request</td>
+                        </tr>
+                        <tr>
+                            <td><code>401</code></td>
+                            <td>Unauthorized (missing or invalid token)</td>
+                        </tr>
+                        <tr>
+                            <td><code>403</code></td>
+                            <td>Forbidden (insufficient permissions)</td>
+                        </tr>
+                        <tr>
+                            <td><code>404</code></td>
+                            <td>Not Found</td>
+                        </tr>
+                        <tr>
+                            <td><code>429</code></td>
+                            <td>Too Many Requests (rate limit exceeded)</td>
+                        </tr>
+                        <tr>
+                            <td><code>500</code></td>
+                            <td>Internal Server Error</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="info-box warning">
+                    <strong>Rate Limiting:</strong> The API enforces rate limiting (100 requests per 15 minutes). If you exceed this limit, you'll receive a 429 status code.
+                </div>
+            </section>
+
+            <!-- Example Usage -->
+            <section id="example-usage" class="section">
+                <h2>Example Usage</h2>
+                <p>Here's a complete example of integrating with the API using JavaScript:</p>
+                <pre><code class="language-javascript">// Base URL
+const API_BASE_URL = 'http://localhost:3010';
+
+// Request OTP
+async function requestOTP(email) {
+  const response = await fetch(`${API_BASE_URL}/api/otp/email`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ email }),
+  });
+  return response.json();
+}
+
+// Login with OTP
+async function login(identifier, code) {
+  const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      identifier,
+      code,
+      deviceName: 'Web Browser',
+      deviceType: 'web',
+    }),
+  });
+  const data = await response.json();
+  if (data.success) {
+    // Store tokens
+    localStorage.setItem('accessToken', data.data.accessToken);
+    localStorage.setItem('refreshToken', data.data.refreshToken);
+  }
+  return data;
+}
+
+// Get movies (public endpoint)
+async function getMovies(page = 1, limit = 20) {
+  const response = await fetch(
+    `${API_BASE_URL}/api/movies?page=${page}&limit=${limit}&status=published`
+  );
+  return response.json();
+}
+
+// Get home sections
+async function getHomeSections(platform = 'web') {
+  const response = await fetch(
+    `${API_BASE_URL}/api/home?platform=${platform}`
+  );
+  return response.json();
+}
+
+// Authenticated request helper
+async function authenticatedFetch(endpoint, options = {}) {
+  const token = localStorage.getItem('accessToken');
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    ...options,
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+      ...options.headers,
+    },
+  });
+  
+  // Handle token refresh if needed
+  if (response.status === 401) {
+    // Try to refresh token
+    const refreshToken = localStorage.getItem('refreshToken');
+    const refreshResponse = await fetch(`${API_BASE_URL}/api/auth/refresh`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ refreshToken }),
+    });
+    
+    if (refreshResponse.ok) {
+      const refreshData = await refreshResponse.json();
+      localStorage.setItem('accessToken', refreshData.data.accessToken);
+      // Retry original request
+      return authenticatedFetch(endpoint, options);
+    }
+  }
+  
+  return response;
+}
+
+// Get current user
+async function getCurrentUser() {
+  const response = await authenticatedFetch('/api/auth/me');
+  return response.json();
+}
+
+// Get user profiles
+async function getUserProfiles() {
+  const response = await authenticatedFetch('/api/users/me/profiles');
+  return response.json();
+}</code></pre>
+            </section>
+        </main>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-core.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/autoloader/prism-autoloader.min.js"></script>
+    <script>
+        // Smooth scrolling for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'start'
+                    });
+                    // Update active nav link
+                    document.querySelectorAll('.nav-link').forEach(link => {
+                        link.classList.remove('active');
+                    });
+                    this.classList.add('active');
+                }
+            });
+        });
+
+        // Highlight active section in sidebar
+        const sections = document.querySelectorAll('.section');
+        const navLinks = document.querySelectorAll('.nav-link');
+
+        function updateActiveNav() {
+            let current = '';
+            sections.forEach(section => {
+                const sectionTop = section.offsetTop;
+                const sectionHeight = section.clientHeight;
+                if (window.pageYOffset >= sectionTop - 200) {
+                    current = section.getAttribute('id');
+                }
+            });
+
+            navLinks.forEach(link => {
+                link.classList.remove('active');
+                if (link.getAttribute('href') === `#${current}`) {
+                    link.classList.add('active');
+                }
+            });
+        }
+
+        window.addEventListener('scroll', updateActiveNav);
+        updateActiveNav();
+
+        // Dark mode toggle
+        const themeToggle = document.getElementById('themeToggle');
+        const sunIcon = document.getElementById('sunIcon');
+        const moonIcon = document.getElementById('moonIcon');
+        const html = document.documentElement;
+
+        // Check for saved theme preference or default to light mode
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        html.setAttribute('data-theme', currentTheme);
+        updateThemeIcon(currentTheme);
+
+        themeToggle.addEventListener('click', () => {
+            const currentTheme = html.getAttribute('data-theme');
+            const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            html.setAttribute('data-theme', newTheme);
+            localStorage.setItem('theme', newTheme);
+            updateThemeIcon(newTheme);
+        });
+
+        function updateThemeIcon(theme) {
+            if (theme === 'dark') {
+                sunIcon.style.display = 'block';
+                moonIcon.style.display = 'none';
+            } else {
+                sunIcon.style.display = 'none';
+                moonIcon.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>
+
