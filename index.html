@@ -543,7 +543,7 @@
                     <a href="#users-api" class="nav-link sub">Users & Profiles</a>
                 </div>
                 <div class="nav-section">
-                    <div class="nav-section-title">Media Service</div>
+                    <div class="nav-section-title">Content Service</div>
                     <a href="#movies-api" class="nav-link sub">Movies</a>
                     <a href="#sections-api" class="nav-link sub">Sections</a>
                     <a href="#assets-api" class="nav-link sub">Assets</a>
@@ -557,7 +557,7 @@
             <!-- Overview -->
             <section id="overview" class="section">
                 <h1>Frontend Integration Guide</h1>
-                <p>This guide provides essential API documentation for frontend developers integrating with the Vaki OTT Platform. It focuses on the <strong>Media Service</strong> and <strong>User Service</strong> routes that are most commonly used by frontend applications.</p>
+                <p>This guide provides essential API documentation for frontend developers integrating with the Vaki OTT Platform. It focuses on the <strong>Content Service</strong> and <strong>User Service</strong> routes that are most commonly used by frontend applications.</p>
                 
                 <div class="info-box">
                     <strong>Note:</strong> This documentation covers only the essential endpoints for frontend integration. For complete API documentation, see the main documentation.
@@ -573,7 +573,7 @@
                     <strong>Route Prefixes:</strong>
                     <ul>
                         <li><strong>User Service:</strong> Routes are mounted directly (e.g., <code>/api/auth</code>, <code>/api/otp</code>, <code>/api/users</code>)</li>
-                        <li><strong>Media Service:</strong> Routes are prefixed with <code>/api/media/</code> (e.g., <code>/api/media/movies</code>, <code>/api/media/sections</code>)</li>
+                        <li><strong>Content Service:</strong> Routes are prefixed with <code>/api/content/</code> (e.g., <code>/api/content/movies</code>, <code>/api/content/sections</code>)</li>
                         <li><strong>Admin Service:</strong> Routes are prefixed with <code>/api/admin/</code> (e.g., <code>/api/admin/movies</code>)</li>
                     </ul>
                 </div>
@@ -1012,18 +1012,18 @@
                 </div>
             </section>
 
-            <!-- Media Service: Movies API -->
+            <!-- Content Service: Movies API -->
             <section id="movies-api" class="section">
                 <h2>Movies API</h2>
                 <p>Public catalog endpoints for browsing and viewing movie content. No authentication required.</p>
                 <div class="info-box" style="margin-bottom: 1.5rem;">
-                    <strong>Route Prefix:</strong> All Media Service routes are prefixed with <code>/api/media/</code>
+                    <strong>Route Prefix:</strong> All Content Service routes are prefixed with <code>/api/content/</code>
                 </div>
 
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/media/movies</span>
+                        <span class="endpoint-path">/api/content/movies</span>
                     </div>
                     <div class="endpoint-description">Get paginated list of movies with filters</div>
                     <h4>Query Parameters:</h4>
@@ -1064,7 +1064,7 @@
                         </tbody>
                     </table>
                     <h4>Example:</h4>
-                    <pre><code class="language-bash">GET /api/media/movies?page=1&limit=12&status=published</code></pre>
+                    <pre><code class="language-bash">GET /api/content/movies?page=1&limit=12&status=published</code></pre>
                     <h4>Response:</h4>
                     <pre><code class="language-json">{
   "success": true,
@@ -1098,11 +1098,11 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/media/movies/:id</span>
+                        <span class="endpoint-path">/api/content/movies/:id</span>
                     </div>
                     <div class="endpoint-description">Get detailed movie information by ID</div>
                     <h4>Example:</h4>
-                    <pre><code class="language-bash">GET /api/media/movies/abc123</code></pre>
+                    <pre><code class="language-bash">GET /api/content/movies/abc123</code></pre>
                     <h4>Response:</h4>
                     <pre><code class="language-json">{
   "success": true,
@@ -1173,7 +1173,7 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/media/movies/:id/with-photos</span>
+                        <span class="endpoint-path">/api/content/movies/:id/with-photos</span>
                     </div>
                     <div class="endpoint-description">Get movie details with all media assets</div>
                     <h4>Response:</h4>
@@ -1210,7 +1210,7 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/media/movies/:id/video-status</span>
+                        <span class="endpoint-path">/api/content/movies/:id/video-status</span>
                     </div>
                     <div class="endpoint-description">Get video transcoding status and thumbnails</div>
                     <h4>Response:</h4>
@@ -1245,7 +1245,7 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/media/movies/:id/image-status</span>
+                        <span class="endpoint-path">/api/content/movies/:id/image-status</span>
                     </div>
                     <div class="endpoint-description">Get poster/backdrop status grouped by category/resolution</div>
                     <h4>Response:</h4>
@@ -1283,19 +1283,19 @@
                 </div>
             </section>
 
-            <!-- Media Service: Sections API -->
+            <!-- Content Service: Sections API -->
             <section id="sections-api" class="section">
                 <h2>Sections API</h2>
                 <p>Get sections with populated movie data for different contexts and platforms. Supports multiple contexts: home, movies, short films, documentaries, bts, search, and profile.</p>
 
                 <div class="info-box warning">
-                    <strong>Deprecated:</strong> The <code>/api/media/home</code> endpoint is deprecated. Use <code>/api/media/sections?context=home&platform=...</code> instead. The old endpoint still works for backward compatibility but redirects to the new endpoint.
+                    <strong>Deprecated:</strong> The <code>/api/content/home</code> endpoint is deprecated. Use <code>/api/content/sections?context=home&platform=...</code> instead. The old endpoint still works for backward compatibility but redirects to the new endpoint.
                 </div>
 
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/media/sections</span>
+                        <span class="endpoint-path">/api/content/sections</span>
                     </div>
                     <div class="endpoint-description">Get active sections for a context and platform</div>
                     <h4>Query Parameters:</h4>
@@ -1324,7 +1324,7 @@
                         </tbody>
                     </table>
                     <h4>Example:</h4>
-                    <pre><code class="language-bash">GET /api/media/sections?context=home&platform=web</code></pre>
+                    <pre><code class="language-bash">GET /api/content/sections?context=home&platform=web</code></pre>
                     <h4>Response Structure:</h4>
                     <pre><code class="language-json">{
   "success": true,
@@ -1450,7 +1450,7 @@
                 </div>
             </section>
 
-            <!-- Media Service: Assets API -->
+            <!-- Content Service: Assets API -->
             <section id="assets-api" class="section">
                 <h2>Assets API</h2>
                 <p>Get media assets (posters, backdrops, videos, subtitles) for movies and other entities.</p>
@@ -1458,7 +1458,7 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/media/assets</span>
+                        <span class="endpoint-path">/api/content/assets</span>
                     </div>
                     <div class="endpoint-description">Get media assets by entity type and ID</div>
                     <h4>Query Parameters:</h4>
@@ -1487,7 +1487,7 @@
                         </tbody>
                     </table>
                     <h4>Example:</h4>
-                    <pre><code class="language-bash">GET /api/media/assets?entityType=movie&entityId=MOV123</code></pre>
+                    <pre><code class="language-bash">GET /api/content/assets?entityType=movie&entityId=MOV123</code></pre>
                     <h4>Response:</h4>
                     <pre><code class="language-json">{
   "success": true,
@@ -1523,11 +1523,11 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/media/assets/movies/:movieId</span>
+                        <span class="endpoint-path">/api/content/assets/movies/:movieId</span>
                     </div>
                     <div class="endpoint-description">Get movie assets grouped by type (posters, backdrops, videos, trailers, subtitles)</div>
                     <h4>Example:</h4>
-                    <pre><code class="language-bash">GET /api/media/assets/movies/abc123</code></pre>
+                    <pre><code class="language-bash">GET /api/content/assets/movies/abc123</code></pre>
                     <h4>Response:</h4>
                     <pre><code class="language-json">{
   "success": true,
@@ -1568,11 +1568,11 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/media/assets/:assetId/url</span>
+                        <span class="endpoint-path">/api/content/assets/:assetId/url</span>
                     </div>
                     <div class="endpoint-description">Get presigned CDN URL for an asset with expiry metadata</div>
                     <h4>Example:</h4>
-                    <pre><code class="language-bash">GET /api/media/assets/asset-123/url?expiresIn=3600</code></pre>
+                    <pre><code class="language-bash">GET /api/content/assets/asset-123/url?expiresIn=3600</code></pre>
                     <h4>Response:</h4>
                     <pre><code class="language-json">{
   "success": true,
@@ -1584,7 +1584,7 @@
                 </div>
             </section>
 
-            <!-- Media Service: References API -->
+            <!-- Content Service: References API -->
             <section id="references-api" class="section">
                 <h2>References API</h2>
                 <p>Get metadata lookups for categories, genres, languages, content ratings, and people.</p>
@@ -1593,7 +1593,7 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/media/references/categories</span>
+                        <span class="endpoint-path">/api/content/references/categories</span>
                     </div>
                     <div class="endpoint-description">Get active content categories sorted by display order</div>
                     <h4>Response:</h4>
@@ -1616,7 +1616,7 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/media/references/genres</span>
+                        <span class="endpoint-path">/api/content/references/genres</span>
                     </div>
                     <div class="endpoint-description">Get genres with optional filters</div>
                     <h4>Query Parameters:</h4>
@@ -1660,7 +1660,7 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/media/references/genres/:id</span>
+                        <span class="endpoint-path">/api/content/references/genres/:id</span>
                     </div>
                     <div class="endpoint-description">Get single genre by ID</div>
                     <h4>Response:</h4>
@@ -1682,7 +1682,7 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/media/references/languages</span>
+                        <span class="endpoint-path">/api/content/references/languages</span>
                     </div>
                     <div class="endpoint-description">Get languages with optional search</div>
                     <h4>Query Parameters:</h4>
@@ -1720,7 +1720,7 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/media/references/languages/:id</span>
+                        <span class="endpoint-path">/api/content/references/languages/:id</span>
                     </div>
                     <div class="endpoint-description">Get single language by ID</div>
                     <h4>Response:</h4>
@@ -1741,7 +1741,7 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/media/references/content-ratings</span>
+                        <span class="endpoint-path">/api/content/references/content-ratings</span>
                     </div>
                     <div class="endpoint-description">Get all content ratings</div>
                     <h4>Response:</h4>
@@ -1762,7 +1762,7 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/media/references/content-ratings/:id</span>
+                        <span class="endpoint-path">/api/content/references/content-ratings/:id</span>
                     </div>
                     <div class="endpoint-description">Get single content rating by ID</div>
                     <h4>Response:</h4>
@@ -1783,7 +1783,7 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/media/references/stream-videos</span>
+                        <span class="endpoint-path">/api/content/references/stream-videos</span>
                     </div>
                     <div class="endpoint-description">Get stream videos with optional filters</div>
                     <h4>Query Parameters:</h4>
@@ -1829,7 +1829,7 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/media/references/movies/:movieId/stream-videos</span>
+                        <span class="endpoint-path">/api/content/references/movies/:movieId/stream-videos</span>
                     </div>
                     <div class="endpoint-description">Get stream videos for a specific movie</div>
                     <h4>Response:</h4>
@@ -1853,7 +1853,7 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/media/references/directors</span>
+                        <span class="endpoint-path">/api/content/references/directors</span>
                     </div>
                     <div class="endpoint-description">Search directors</div>
                     <h4>Query Parameters:</h4>
@@ -1895,7 +1895,7 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/media/references/directors/:id</span>
+                        <span class="endpoint-path">/api/content/references/directors/:id</span>
                     </div>
                     <div class="endpoint-description">Get director profile by ID</div>
                     <h4>Response:</h4>
@@ -1915,7 +1915,7 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/media/references/actors</span>
+                        <span class="endpoint-path">/api/content/references/actors</span>
                     </div>
                     <div class="endpoint-description">Search actors (includes media asset URL)</div>
                     <h4>Query Parameters:</h4>
@@ -1958,7 +1958,7 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/media/references/actors/:id</span>
+                        <span class="endpoint-path">/api/content/references/actors/:id</span>
                     </div>
                     <div class="endpoint-description">Get actor profile by ID (includes media asset URL)</div>
                     <h4>Response:</h4>
@@ -1979,7 +1979,7 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/media/references/producers</span>
+                        <span class="endpoint-path">/api/content/references/producers</span>
                     </div>
                     <div class="endpoint-description">Search producers</div>
                     <h4>Query Parameters:</h4>
@@ -2021,7 +2021,7 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/media/references/producers/:id</span>
+                        <span class="endpoint-path">/api/content/references/producers/:id</span>
                     </div>
                     <div class="endpoint-description">Get producer profile by ID</div>
                     <h4>Response:</h4>
@@ -2039,7 +2039,7 @@
                 </div>
             </section>
 
-            <!-- Media Service: People API -->
+            <!-- Content Service: People API -->
             <section id="people-api" class="section">
                 <h2>People Search API</h2>
                 <p>Unified search across directors, actors, and producers.</p>
@@ -2047,7 +2047,7 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/media/people/search</span>
+                        <span class="endpoint-path">/api/content/people/search</span>
                     </div>
                     <div class="endpoint-description">Search across all people types</div>
                     <h4>Query Parameters:</h4>
@@ -2076,7 +2076,7 @@
                         </tbody>
                     </table>
                     <h4>Example:</h4>
-                    <pre><code class="language-bash">GET /api/media/people/search?q=raj&type=directors</code></pre>
+                    <pre><code class="language-bash">GET /api/content/people/search?q=raj&type=directors</code></pre>
                     <p>Returns up to 10 matches per type.</p>
                     <h4>Response:</h4>
                     <pre><code class="language-json">{
@@ -2111,7 +2111,7 @@
                 <p>All API endpoints return errors in a consistent format:</p>
                 <pre><code class="language-json">{
   "error": "Error message",
-  "path": "/api/media/movies",
+  "path": "/api/content/movies",
   "method": "GET",
   "status": 404,
   "timestamp": "2025-01-15T10:30:00.000Z"
@@ -2211,7 +2211,7 @@ async function login(identifier, code) {
 // Get movies (public endpoint)
 async function getMovies(page = 1, limit = 20) {
   const response = await fetch(
-    `${API_BASE_URL}/api/media/movies?page=${page}&limit=${limit}&status=published`
+    `${API_BASE_URL}/api/content/movies?page=${page}&limit=${limit}&status=published`
   );
   return response.json();
 }
@@ -2219,7 +2219,7 @@ async function getMovies(page = 1, limit = 20) {
 // Get sections for a context and platform
 async function getSections(context = 'home', platform = 'web') {
   const response = await fetch(
-    `${API_BASE_URL}/api/media/sections?context=${context}&platform=${platform}`
+    `${API_BASE_URL}/api/content/sections?context=${context}&platform=${platform}`
   );
   return response.json();
 }
