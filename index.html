@@ -1295,7 +1295,7 @@
                                 <td><code>platform</code></td>
                                 <td>string</td>
                                 <td>Yes</td>
-                                <td>Platform filter: <code>all</code>, <code>web</code>, <code>android</code>, <code>ios</code>, <code>tv</code></td>
+                                <td>Platform filter: <code>web</code> or <code>mobile</code> or <code>tv</code></td>
                             </tr>
                         </tbody>
                     </table>
@@ -1310,10 +1310,15 @@
       "slug": "trending",
       "title": "Trending Now",
       "description": "Popular movies this week",
-      "platform": "all",
+      "platform": "web",
       "sectionType": "carousel",
       "displayOrder": 0,
+      "priority": 0,
       "showViewAll": true,
+      "styleConfig": {
+        "background": "dark",
+        "showArrows": true
+      },
       "dataSourceType": "query", // or "manual"
       "movies": [
         {
@@ -1330,10 +1335,50 @@
           "posterUrl": "https://cdn.example.com/posters/movie-456.jpg",
           "backdropUrl": "https://cdn.example.com/backdrops/movie-456.jpg"
         }
-      ]
+      ],
+      "queryConfig": {
+        "filters": {
+          "genreSlugs": ["action"],
+          "minYear": 2020,
+          "status": "published"
+        },
+        "sort": {
+          "field": "releaseDate",
+          "direction": "desc"
+        },
+        "limit": 20
+      }
     }
   ]
 }</code></pre>
+                    <h4>Section Type Values:</h4>
+                    <p>The <code>sectionType</code> field indicates how the section should be displayed:</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Value</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>carousel</code></td>
+                                <td>Horizontal scrolling carousel of movies</td>
+                            </tr>
+                            <tr>
+                                <td><code>carousel-album</code></td>
+                                <td>Album-style carousel with larger movie cards</td>
+                            </tr>
+                            <tr>
+                                <td><code>carousel-banner</code></td>
+                                <td>Banner-style carousel with featured content</td>
+                            </tr>
+                            <tr>
+                                <td><code>hero</code></td>
+                                <td>Hero section typically used for featured content at the top</td>
+                            </tr>
+                        </tbody>
+                    </table>
                     <div class="info-box">
                         <strong>Note:</strong> Returns only active sections that respect <code>startDate</code> and <code>endDate</code> scheduling. Sections are sorted by <code>displayOrder</code> (ascending), then <code>priority</code> (descending).
                     </div>
