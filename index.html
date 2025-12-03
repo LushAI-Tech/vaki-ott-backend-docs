@@ -355,6 +355,61 @@
             align-items: center;
             gap: 1rem;
             margin-bottom: 1rem;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .endpoint-header:hover {
+            opacity: 0.8;
+        }
+
+        .endpoint-toggle {
+            margin-left: auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            transition: transform 0.2s, background-color 0.2s;
+            color: var(--text-light);
+        }
+
+        .endpoint-toggle:hover {
+            background: var(--bg-light);
+        }
+
+        .endpoint-toggle svg {
+            width: 16px;
+            height: 16px;
+            transition: transform 0.2s;
+        }
+
+        .endpoint.collapsed .endpoint-toggle svg {
+            transform: rotate(-90deg);
+        }
+
+        .endpoint-content {
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, opacity 0.2s ease-out;
+            max-height: 5000px;
+            opacity: 1;
+        }
+
+        .endpoint.collapsed .endpoint-content {
+            max-height: 0;
+            opacity: 0;
+            margin: 0;
+            padding: 0;
+        }
+
+        .endpoint-description {
+            margin-bottom: 1rem;
+            color: var(--text-light);
+        }
+
+        .endpoint.collapsed .endpoint-description {
+            margin-bottom: 0;
         }
 
         .endpoint-method {
@@ -2153,6 +2208,45 @@ async function getUserProfiles() {
 
         window.addEventListener('scroll', updateActiveNav);
         updateActiveNav();
+
+        // Make endpoints collapsible
+        document.querySelectorAll('.endpoint').forEach(endpoint => {
+            const header = endpoint.querySelector('.endpoint-header');
+            if (!header) return;
+
+            // Check if already processed
+            if (endpoint.querySelector('.endpoint-toggle')) return;
+
+            // Create toggle button
+            const toggle = document.createElement('div');
+            toggle.className = 'endpoint-toggle';
+            toggle.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>';
+            header.appendChild(toggle);
+
+            // Find description and keep it outside content div
+            const description = endpoint.querySelector('.endpoint-description');
+            
+            // Wrap content after description (or header if no description) in endpoint-content div
+            const content = document.createElement('div');
+            content.className = 'endpoint-content';
+            
+            // Start from description's next sibling, or header's next sibling if no description
+            const startNode = description ? description.nextSibling : header.nextSibling;
+            if (startNode) {
+                let node = startNode;
+                while (node) {
+                    const nextNode = node.nextSibling;
+                    content.appendChild(node);
+                    node = nextNode;
+                }
+                endpoint.appendChild(content);
+            }
+
+            // Add click handler
+            header.addEventListener('click', () => {
+                endpoint.classList.toggle('collapsed');
+            });
+        });
 
         // Dark mode toggle
         const themeToggle = document.getElementById('themeToggle');
