@@ -1100,74 +1100,174 @@
                         <span class="badge badge-get">GET</span>
                         <span class="endpoint-path">/api/content/movies/:id</span>
                     </div>
-                    <div class="endpoint-description">Get detailed movie information by ID</div>
+                    <div class="endpoint-description">Get detailed movie information by ID. Returns only media assets with fileType 'backdrop' or 'poster', and one trailer video (if available).</div>
                     <h4>Example:</h4>
-                    <pre><code class="language-bash">GET /api/content/movies/abc123</code></pre>
+                    <pre><code class="language-bash">GET /api/content/movies/c6bd0765-306d-43be-ade3-51e35389d207</code></pre>
                     <h4>Response:</h4>
                     <pre><code class="language-json">{
   "success": true,
   "data": {
-    "id": "movie-uuid",
-    "title": "Movie Title",
-    "slug": "movie-title",
-    "description": "Movie description",
-    "shortDescription": "Short description",
-    "year": 2024,
-    "duration": 120,
-    "releaseDate": "2024-01-15",
+    "id": "c6bd0765-306d-43be-ade3-51e35389d207",
+    "title": "Zalenna",
+    "slug": "zalenna",
+    "description": "This is a movie of freedom war",
+    "shortDescription": null,
+    "categoryId": "47ce398c-6497-4e91-a580-9a4bf167abf1",
+    "languageId": "9711a64e-1a36-4e46-88d3-805ff69b57ae",
+    "contentRatingId": "d9a8ba63-4e3f-4e29-80cd-f53f011d537d",
+    "year": 2025,
+    "duration": 116,
+    "releaseDate": "2025-11-12",
+    "isReleased": false,
+    "contentType": "rent",
+    "rentalPrice24h": 149,
+    "rentalPrice36h": 199,
+    "rentalAvailable": true,
+    "rentalDurationHours": 48,
+    "metaTitle": null,
+    "metaDescription": null,
+    "metaKeywords": null,
+    "status": "published",
+    "processingStatus": "processing",
+    "createdBy": null,
+    "updatedBy": null,
+    "createdAt": "2025-10-28T06:42:27.276Z",
+    "updatedAt": "2025-11-28T10:11:56.188Z",
     "category": {
-      "id": "category-uuid",
-      "name": "Action",
-      "slug": "action"
+      "id": "47ce398c-6497-4e91-a580-9a4bf167abf1",
+      "name": "Movies",
+      "slug": "movies",
+      "description": "Feature films and movies",
+      "displayOrder": 1,
+      "isActive": true,
+      "createdAt": "2025-09-09T07:35:01.820Z",
+      "updatedAt": "2025-09-09T07:35:01.820Z"
     },
     "language": {
-      "id": "language-uuid",
-      "name": "English",
-      "code": "en"
+      "id": "9711a64e-1a36-4e46-88d3-805ff69b57ae",
+      "name": "Mizo",
+      "code": "lus",
+      "nativeName": "Mizo",
+      "isActive": true,
+      "createdAt": "2025-09-09T07:35:01.820Z"
     },
     "rating": {
-      "id": "rating-uuid",
-      "name": "PG-13"
+      "id": "d9a8ba63-4e3f-4e29-80cd-f53f011d537d",
+      "name": "PG-13",
+      "description": "Some material may not be suitable for children. Parents urged to give \"parental guidance\". May contain some material parents might not like for their young children.",
+      "minAge": 13,
+      "displayOrder": 2,
+      "isActive": true,
+      "createdAt": "2025-09-09T07:35:01.820Z"
     },
     "genres": [
       {
-        "id": "genre-uuid",
+        "id": "ce410df5-f88d-4b27-8a20-d179b75935d2",
         "name": "Action",
         "slug": "action"
+      },
+      {
+        "id": "31f12474-c746-49ea-af2f-9910385c15cb",
+        "name": "Drama",
+        "slug": "drama"
       }
     ],
     "directors": [
       {
-        "id": "director-uuid",
-        "name": "Director Name"
+        "id": "eb838cfb-2f3c-41ea-9eea-8232d4964f10",
+        "name": "Lalnunsiama",
+        "slug": "lalnunsiama"
       }
     ],
     "cast": [
       {
-        "id": "cast-uuid",
-        "actorId": "actor-uuid",
-        "actorName": "Actor Name",
-        "characterName": "Character Name",
+        "id": "4d79a710-6567-41f1-bc7a-b6415c18b169",
+        "actorId": "d97c5d0b-a8b0-4c04-b6ce-15176e4bd636",
+        "actorName": "Papuia Pachuau",
+        "characterName": "Zamuana (Dusty)",
+        "isLead": true
+      },
+      {
+        "id": "2f11a664-8df4-4b92-a6da-5ae4c05df4c4",
+        "actorId": "73bd7aa0-e4a0-477c-97d6-bf39615af2b3",
+        "actorName": "Sangtei Renza",
+        "characterName": "Sangtei",
         "isLead": true
       }
     ],
     "producers": [
       {
-        "id": "producer-uuid",
-        "name": "Producer Name"
+        "id": "843338f5-6a1b-4ff2-a243-ae9152d450ac",
+        "name": "One Vision Media",
+        "slug": "one-vision-media"
       }
     ],
     "media": [
       {
-        "id": "asset-uuid",
+        "id": "19de6e4d-ada4-4a85-99b6-d3634da147ba",
+        "entityType": "movie",
+        "entityId": "c6bd0765-306d-43be-ade3-51e35389d207",
+        "fileType": "backdrop",
+        "fileCategory": "movie-backdrop-small",
+        "fileName": "Zalenna Potrait_small.jpg",
+        "cdnUrl": "https://media.vaki-ott.com/movies/backdrops/c6bd0765-306d-43be-ade3-51e35389d207/small/Zalenna Potrait_small.jpg",
+        "width": null,
+        "height": null,
+        "fileSize": 126105,
+        "mimeType": "image/jpeg",
+        "quality": "480p",
+        "uploadStatus": "completed",
+        "processingStatus": "completed"
+      },
+      {
+        "id": "1f904952-8b48-417f-ac98-5771bddbe6c1",
+        "entityType": "movie",
+        "entityId": "c6bd0765-306d-43be-ade3-51e35389d207",
         "fileType": "poster",
-        "cdnUrl": "https://cdn.example.com/posters/movie-uuid.jpg",
-        "width": 1920,
-        "height": 1080
+        "fileCategory": "movie-poster",
+        "fileName": "IMG_6308.JPG",
+        "cdnUrl": "https://media.vaki-ott.com/movies/posters/c6bd0765-306d-43be-ade3-51e35389d207/1761667685180-nas0nig371q.JPG",
+        "width": null,
+        "height": null,
+        "fileSize": 14799001,
+        "mimeType": "image/jpeg",
+        "uploadStatus": "completed",
+        "processingStatus": "pending"
       }
-    ]
+    ],
+    "trailerVideo": {
+      "id": "9422afe1-db1c-4423-9004-174d1f583c9b",
+      "streamVideoId": "d8ae80e9194a2526ca6ae18956db79e3",
+      "movieId": "c6bd0765-306d-43be-ade3-51e35389d207",
+      "videoType": "Trailer",
+      "title": null,
+      "description": null,
+      "duration": null,
+      "width": null,
+      "height": null,
+      "playbackUrl": null,
+      "thumbnailUrl": "https://customer-sle34v2e2yjr1cno.cloudflarestream.com/d8ae80e9194a2526ca6ae18956db79e3/thumbnails/thumbnail.jpg",
+      "previewUrl": "https://customer-sle34v2e2yjr1cno.cloudflarestream.com/d8ae80e9194a2526ca6ae18956db79e3/watch",
+      "hlsUrl": "https://customer-sle34v2e2yjr1cno.cloudflarestream.com/d8ae80e9194a2526ca6ae18956db79e3/manifest/video.m3u8",
+      "dashUrl": "https://customer-sle34v2e2yjr1cno.cloudflarestream.com/d8ae80e9194a2526ca6ae18956db79e3/manifest/video.mpd",
+      "availableQualities": null,
+      "defaultQuality": "auto",
+      "requiresAuth": true,
+      "allowedDomains": null,
+      "status": "ready",
+      "createdAt": "2025-10-28T06:44:43.682Z",
+      "updatedAt": "2025-10-28T06:44:43.682Z"
+    }
   }
 }</code></pre>
+                    <div class="info-box" style="margin-top: 1rem;">
+                        <strong>Note:</strong>
+                        <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
+                            <li>The <code>media</code> array only includes assets where <code>fileType</code> is <code>"backdrop"</code> or <code>"poster"</code></li>
+                            <li>The <code>trailerVideo</code> field contains one stream video where <code>videoType</code> is <code>"Trailer"</code> or <code>"trailer"</code> (case-insensitive). It will be <code>null</code> if no trailer is available</li>
+                            <li>Media assets may include multiple resolutions (small, medium, large, original) for both posters and backdrops</li>
+                        </ul>
+                    </div>
                 </div>
 
                 <div class="endpoint">
