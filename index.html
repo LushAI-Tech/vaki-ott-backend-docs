@@ -1931,22 +1931,78 @@
                         <span class="badge badge-get">GET</span>
                         <span class="endpoint-path">/api/content/references/movies/:movieId/stream-videos</span>
                     </div>
-                    <div class="endpoint-description">Get stream videos for a specific movie</div>
+                    <div class="endpoint-description">Get all stream videos for a specific movie (includes main videos, trailers, etc.)</div>
+                    <h4>Example:</h4>
+                    <pre><code class="language-bash">GET /api/content/references/movies/c6bd0765-306d-43be-ade3-51e35389d207/stream-videos</code></pre>
                     <h4>Response:</h4>
                     <pre><code class="language-json">{
   "success": true,
   "data": [
     {
-      "id": "stream-video-uuid",
-      "movieId": "movie-uuid",
-      "videoId": "cloudflare-stream-video-id",
+      "id": "8f4b08a5-0b1e-41f7-9c9b-b79b12b915fc",
+      "streamVideoId": "006e13f7bc4ddb8ca2d31d3ffa9cbbe6",
+      "movieId": "c6bd0765-306d-43be-ade3-51e35389d207",
+      "videoType": "main video",
+      "title": null,
+      "description": null,
+      "duration": null,
+      "size": null,
+      "fileSize": null,
+      "width": null,
+      "height": null,
+      "playbackUrl": null,
+      "thumbnailUrl": "https://customer-sle34v2e2yjr1cno.cloudflarestream.com/006e13f7bc4ddb8ca2d31d3ffa9cbbe6/thumbnails/thumbnail.jpg",
+      "previewUrl": "https://customer-sle34v2e2yjr1cno.cloudflarestream.com/006e13f7bc4ddb8ca2d31d3ffa9cbbe6/watch",
+      "hlsUrl": "https://customer-sle34v2e2yjr1cno.cloudflarestream.com/006e13f7bc4ddb8ca2d31d3ffa9cbbe6/manifest/video.m3u8",
+      "dashUrl": "https://customer-sle34v2e2yjr1cno.cloudflarestream.com/006e13f7bc4ddb8ca2d31d3ffa9cbbe6/manifest/video.mpd",
+      "availableQualities": null,
+      "defaultQuality": "auto",
+      "requiresAuth": true,
+      "allowedDomains": null,
       "status": "ready",
-      "duration": 7200,
-      "width": 1920,
-      "height": 1080
+      "createdAt": "2025-10-28T06:44:28.822Z",
+      "updatedAt": "2025-10-28T06:44:28.822Z",
+      "streamCreatedAt": null,
+      "streamReadyAt": null
+    },
+    {
+      "id": "9422afe1-db1c-4423-9004-174d1f583c9b",
+      "streamVideoId": "d8ae80e9194a2526ca6ae18956db79e3",
+      "movieId": "c6bd0765-306d-43be-ade3-51e35389d207",
+      "videoType": "Trailer",
+      "title": null,
+      "description": null,
+      "duration": null,
+      "size": null,
+      "fileSize": null,
+      "width": null,
+      "height": null,
+      "playbackUrl": null,
+      "thumbnailUrl": "https://customer-sle34v2e2yjr1cno.cloudflarestream.com/d8ae80e9194a2526ca6ae18956db79e3/thumbnails/thumbnail.jpg",
+      "previewUrl": "https://customer-sle34v2e2yjr1cno.cloudflarestream.com/d8ae80e9194a2526ca6ae18956db79e3/watch",
+      "hlsUrl": "https://customer-sle34v2e2yjr1cno.cloudflarestream.com/d8ae80e9194a2526ca6ae18956db79e3/manifest/video.m3u8",
+      "dashUrl": "https://customer-sle34v2e2yjr1cno.cloudflarestream.com/d8ae80e9194a2526ca6ae18956db79e3/manifest/video.mpd",
+      "availableQualities": null,
+      "defaultQuality": "auto",
+      "requiresAuth": true,
+      "allowedDomains": null,
+      "status": "ready",
+      "createdAt": "2025-10-28T06:44:43.682Z",
+      "updatedAt": "2025-10-28T06:44:43.682Z",
+      "streamCreatedAt": null,
+      "streamReadyAt": null
     }
   ]
 }</code></pre>
+                    <div class="info-box" style="margin-top: 1rem;">
+                        <strong>Note:</strong>
+                        <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
+                            <li>Returns all stream videos for the specified movie, including main videos, trailers, and other video types</li>
+                            <li>The <code>videoType</code> field indicates the type of video (e.g., "main video", "Trailer")</li>
+                            <li>Streaming URLs (HLS, DASH) are provided for video playback</li>
+                            <li>The <code>requiresAuth</code> field indicates if authentication is required to access the video</li>
+                        </ul>
+                    </div>
                 </div>
 
                 <h3>People (Directors, Actors, Producers)</h3>
