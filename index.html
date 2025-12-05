@@ -1061,6 +1061,78 @@
                                 <td>No</td>
                                 <td>Search movies by title or description</td>
                             </tr>
+                            <tr>
+                                <td><code>genreIds</code></td>
+                                <td>string</td>
+                                <td>No</td>
+                                <td>Comma-separated genre UUIDs (e.g., <code>uuid1,uuid2</code>)</td>
+                            </tr>
+                            <tr>
+                                <td><code>genreSlugs</code></td>
+                                <td>string</td>
+                                <td>No</td>
+                                <td>Comma-separated genre slugs (e.g., <code>action,thriller</code>)</td>
+                            </tr>
+                            <tr>
+                                <td><code>categoryId</code></td>
+                                <td>string</td>
+                                <td>No</td>
+                                <td>Category UUID</td>
+                            </tr>
+                            <tr>
+                                <td><code>categorySlug</code></td>
+                                <td>string</td>
+                                <td>No</td>
+                                <td>Category slug (e.g., <code>movies</code>)</td>
+                            </tr>
+                            <tr>
+                                <td><code>contentType</code></td>
+                                <td>string</td>
+                                <td>No</td>
+                                <td>Content type: <code>free</code>, <code>rent</code>, <code>subscription</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>minYear</code></td>
+                                <td>number</td>
+                                <td>No</td>
+                                <td>Minimum release year (inclusive)</td>
+                            </tr>
+                            <tr>
+                                <td><code>maxYear</code></td>
+                                <td>number</td>
+                                <td>No</td>
+                                <td>Maximum release year (inclusive)</td>
+                            </tr>
+                            <tr>
+                                <td><code>languageId</code></td>
+                                <td>string</td>
+                                <td>No</td>
+                                <td>Language UUID</td>
+                            </tr>
+                            <tr>
+                                <td><code>languageCode</code></td>
+                                <td>string</td>
+                                <td>No</td>
+                                <td>Language code (e.g., <code>en</code>, <code>hi</code>)</td>
+                            </tr>
+                            <tr>
+                                <td><code>contentRatingId</code></td>
+                                <td>string</td>
+                                <td>No</td>
+                                <td>Content rating UUID</td>
+                            </tr>
+                            <tr>
+                                <td><code>sortField</code></td>
+                                <td>string</td>
+                                <td>No</td>
+                                <td>Sort field: <code>popularityScore</code>, <code>releaseDate</code>, <code>year</code>, <code>title</code>, <code>createdAt</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>sortDirection</code></td>
+                                <td>string</td>
+                                <td>No</td>
+                                <td>Sort direction: <code>asc</code> or <code>desc</code> (default: <code>desc</code>)</td>
+                            </tr>
                         </tbody>
                     </table>
                     <h4>Example:</h4>
@@ -1093,6 +1165,143 @@
     }
   }
 }</code></pre>
+                    <div class="info-box" style="margin-top: 1rem;">
+                        <strong>Advanced Filtering:</strong> The movies API supports the same query configuration structure used in sections. See the <a href="#movies-query-config">Query Config Guide</a> below for detailed examples of using filters, sorting, and combining multiple parameters.
+                    </div>
+                </div>
+
+                <!-- Query Config Guide Section -->
+                <div id="movies-query-config" class="endpoint" style="margin-top: 3rem;">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">Query Config Guide</span>
+                        <span class="endpoint-path">Using Sections Query Config with Movies API</span>
+                    </div>
+                    <div class="endpoint-description">
+                        <p>The Movies API supports the same query configuration structure used in sections. This allows you to use advanced filtering, sorting, and search capabilities that match the queryConfig format used in section definitions.</p>
+                    </div>
+
+                    <h3>Filter Parameters</h3>
+                    <p>All filters are combined using <strong>AND</strong> logic. A movie must match all specified filters to be included.</p>
+
+                    <h4>Genre Filtering</h4>
+                    <p>Filter by genres using either IDs or slugs (not both). Returns movies that have <strong>any</strong> of the specified genres (OR logic).</p>
+                    <pre><code class="language-bash"># Using genre slugs (recommended)
+GET /api/content/movies?genreSlugs=action,thriller&status=published&limit=20
+
+# Using genre IDs
+GET /api/content/movies?genreIds=uuid1,uuid2,uuid3&status=published&limit=20</code></pre>
+
+                    <h4>Category Filtering</h4>
+                    <p>Filter by content category using either ID or slug (not both).</p>
+                    <pre><code class="language-bash"># Using category slug
+GET /api/content/movies?categorySlug=movies&status=published&limit=20
+
+# Using category ID
+GET /api/content/movies?categoryId=47ce398c-6497-4e91-a580-9a4bf167abf1&status=published&limit=20</code></pre>
+
+                    <h4>Content Type Filtering</h4>
+                    <p>Filter by content access type.</p>
+                    <pre><code class="language-bash"># Free content only
+GET /api/content/movies?contentType=free&status=published&limit=20
+
+# Rental content
+GET /api/content/movies?contentType=rent&status=published&limit=20
+
+# Subscription content
+GET /api/content/movies?contentType=subscription&status=published&limit=20</code></pre>
+
+                    <h4>Year Range Filtering</h4>
+                    <p>Filter movies by release year range.</p>
+                    <pre><code class="language-bash"># Movies from 2020 onwards
+GET /api/content/movies?minYear=2020&status=published&limit=20
+
+# Movies between 2020 and 2024
+GET /api/content/movies?minYear=2020&maxYear=2024&status=published&limit=20</code></pre>
+
+                    <h4>Language Filtering</h4>
+                    <p>Filter by language using either ID or code (not both).</p>
+                    <pre><code class="language-bash"># Using language code
+GET /api/content/movies?languageCode=en&status=published&limit=20
+
+# Using language ID
+GET /api/content/movies?languageId=9711a64e-1a36-4e46-88d3-805ff69b57ae&status=published&limit=20</code></pre>
+
+                    <h4>Content Rating Filtering</h4>
+                    <p>Filter by content rating.</p>
+                    <pre><code class="language-bash">GET /api/content/movies?contentRatingId=d9a8ba63-4e3f-4e29-80cd-f53f011d537d&status=published&limit=20</code></pre>
+
+                    <h4>Text Search</h4>
+                    <p>Searches in movie title and description (case-insensitive, partial match).</p>
+                    <pre><code class="language-bash">GET /api/content/movies?search=avengers&status=published&limit=20</code></pre>
+
+                    <h3>Sorting</h3>
+                    <p>Control the order of results using <code>sortField</code> and <code>sortDirection</code>.</p>
+
+                    <h4>Available Sort Fields:</h4>
+                    <ul>
+                        <li><code>popularityScore</code> - Sort by popularity (falls back to createdAt if not available)</li>
+                        <li><code>releaseDate</code> - Sort by release date</li>
+                        <li><code>year</code> - Sort by year</li>
+                        <li><code>title</code> - Sort alphabetically by title</li>
+                        <li><code>createdAt</code> - Sort by creation date (default)</li>
+                    </ul>
+
+                    <h4>Sort Directions:</h4>
+                    <ul>
+                        <li><code>asc</code> - Ascending order</li>
+                        <li><code>desc</code> - Descending order (default)</li>
+                    </ul>
+
+                    <h4>Sorting Examples:</h4>
+                    <pre><code class="language-bash"># Sort by release date, newest first
+GET /api/content/movies?sortField=releaseDate&sortDirection=desc&status=published&limit=20
+
+# Sort by title alphabetically
+GET /api/content/movies?sortField=title&sortDirection=asc&status=published&limit=20
+
+# Sort by year, oldest first
+GET /api/content/movies?sortField=year&sortDirection=asc&status=published&limit=20</code></pre>
+
+                    <h3>Combining Filters</h3>
+                    <p>You can combine multiple filters to create complex queries. All filters use AND logic.</p>
+
+                    <h4>Example: Complex Query</h4>
+                    <pre><code class="language-bash"># Action or Thriller movies from 2020 onwards, sorted by release date
+GET /api/content/movies?genreSlugs=action,thriller&minYear=2020&status=published&sortField=releaseDate&sortDirection=desc&limit=20</code></pre>
+
+                    <h4>Example: Free Content by Genre and Year</h4>
+                    <pre><code class="language-bash"># Free action movies from 2024, sorted by title
+GET /api/content/movies?genreSlugs=action&contentType=free&minYear=2024&maxYear=2024&status=published&sortField=title&sortDirection=asc&limit=20</code></pre>
+
+                    <h3>Mapping to Sections Query Config</h3>
+                    <p>The query parameters map directly to the <code>queryConfig</code> structure used in sections:</p>
+                    <pre><code class="language-json">{
+  "filters": {
+    "genreSlugs": ["action", "thriller"],
+    "minYear": 2020,
+    "status": "published",
+    "contentType": "free"
+  },
+  "sort": {
+    "field": "releaseDate",
+    "direction": "desc"
+  },
+  "limit": 20
+}</code></pre>
+                    <p>This queryConfig can be used in sections, and the same filters can be applied to the Movies API using query parameters:</p>
+                    <pre><code class="language-bash">GET /api/content/movies?genreSlugs=action,thriller&minYear=2020&status=published&contentType=free&sortField=releaseDate&sortDirection=desc&limit=20</code></pre>
+
+                    <div class="info-box" style="margin-top: 1rem;">
+                        <strong>Note:</strong>
+                        <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
+                            <li>Genre filters use <strong>OR</strong> logic (movies with any of the specified genres)</li>
+                            <li>All other filters use <strong>AND</strong> logic (must match all specified filters)</li>
+                            <li>You cannot use both <code>genreIds</code> and <code>genreSlugs</code> in the same query</li>
+                            <li>You cannot use both <code>categoryId</code> and <code>categorySlug</code> in the same query</li>
+                            <li>You cannot use both <code>languageId</code> and <code>languageCode</code> in the same query</li>
+                            <li>Default sort is by <code>createdAt</code> in <code>desc</code> order if no sort is specified</li>
+                        </ul>
+                    </div>
                 </div>
 
                 <div class="endpoint">
@@ -1998,7 +2207,7 @@
                         <strong>Note:</strong>
                         <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
                             <li>Returns all stream videos for the specified movie, including main videos, trailers, and other video types</li>
-                            <li>The <code>videoType</code> field indicates the type of video (e.g., "main video / main", "Trailer")</li>
+                            <li>The <code>videoType</code> field indicates the type of video (e.g., "main video", "Trailer")</li>
                             <li>Streaming URLs (HLS, DASH) are provided for video playback</li>
                             <li>The <code>requiresAuth</code> field indicates if authentication is required to access the video</li>
                         </ul>
