@@ -543,7 +543,7 @@
                     <a href="#users-api" class="nav-link sub">Users & Profiles</a>
                 </div>
                 <div class="nav-section">
-                    <div class="nav-section-title">Media Service</div>
+                    <div class="nav-section-title">Content Service</div>
                     <a href="#movies-api" class="nav-link sub">Movies</a>
                     <a href="#sections-api" class="nav-link sub">Sections</a>
                     <a href="#assets-api" class="nav-link sub">Assets</a>
@@ -557,7 +557,7 @@
             <!-- Overview -->
             <section id="overview" class="section">
                 <h1>Frontend Integration Guide</h1>
-                <p>This guide provides essential API documentation for frontend developers integrating with the Vaki OTT Platform. It focuses on the <strong>Media Service</strong> and <strong>User Service</strong> routes that are most commonly used by frontend applications.</p>
+                <p>This guide provides essential API documentation for frontend developers integrating with the Vaki OTT Platform. It focuses on the <strong>Content Service</strong> and <strong>User Service</strong> routes that are most commonly used by frontend applications.</p>
                 
                 <div class="info-box">
                     <strong>Note:</strong> This documentation covers only the essential endpoints for frontend integration. For complete API documentation, see the main documentation.
@@ -573,7 +573,7 @@
                     <strong>Route Prefixes:</strong>
                     <ul>
                         <li><strong>User Service:</strong> Routes are mounted directly (e.g., <code>/api/auth</code>, <code>/api/otp</code>, <code>/api/users</code>)</li>
-                        <li><strong>Media Service:</strong> Routes are prefixed with <code>/api/media/</code> (e.g., <code>/api/media/movies</code>, <code>/api/media/sections</code>)</li>
+                        <li><strong>Content Service:</strong> Routes are prefixed with <code>/api/media/</code> (e.g., <code>/api/media/movies</code>, <code>/api/media/sections</code>)</li>
                         <li><strong>Admin Service:</strong> Routes are prefixed with <code>/api/admin/</code> (e.g., <code>/api/admin/movies</code>)</li>
                     </ul>
                 </div>
@@ -1067,12 +1067,12 @@
                 </div>
             </section>
 
-            <!-- Media Service: Movies API -->
+            <!-- Content Service: Movies API -->
             <section id="movies-api" class="section">
                 <h2>Movies API</h2>
                 <p>Public catalog endpoints for browsing and viewing movie content. No authentication required.</p>
                 <div class="info-box" style="margin-bottom: 1.5rem;">
-                    <strong>Route Prefix:</strong> All Media Service routes are prefixed with <code>/api/media/</code>
+                    <strong>Route Prefix:</strong> All Content Service routes are prefixed with <code>/api/media/</code>
                 </div>
 
                 <div class="endpoint">
@@ -1338,7 +1338,7 @@
                 </div>
             </section>
 
-            <!-- Media Service: Sections API -->
+            <!-- Content Service: Sections API -->
             <section id="sections-api" class="section">
                 <h2>Sections API</h2>
                 <p>Get sections with populated movie data for different contexts and platforms. Supports multiple contexts: home, movies, short films, documentaries, bts, search, and profile.</p>
@@ -1505,7 +1505,7 @@
                 </div>
             </section>
 
-            <!-- Media Service: Assets API -->
+            <!-- Content Service: Assets API -->
             <section id="assets-api" class="section">
                 <h2>Assets API</h2>
                 <p>Get media assets (posters, backdrops, videos, subtitles) for movies and other entities.</p>
@@ -1639,7 +1639,7 @@
                 </div>
             </section>
 
-            <!-- Media Service: References API -->
+            <!-- Content Service: References API -->
             <section id="references-api" class="section">
                 <h2>References API</h2>
                 <p>Get metadata lookups for categories, genres, languages, content ratings, and people.</p>
@@ -2207,7 +2207,7 @@ GET /api/media/references/producers/producer-uuid?includeMovies=false</code></pr
                 </div>
             </section>
 
-            <!-- Media Service: People API -->
+            <!-- Content Service: People API -->
             <section id="people-api" class="section">
                 <h2>People Search API</h2>
                 <p>Unified search across directors, actors, and producers.</p>
