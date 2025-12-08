@@ -1952,7 +1952,29 @@
                         <span class="badge badge-get">GET</span>
                         <span class="endpoint-path">/api/media/references/directors/:id</span>
                     </div>
-                    <div class="endpoint-description">Get director profile by ID</div>
+                    <div class="endpoint-description">Get director profile by ID with associated movies</div>
+                    <h4>Query Parameters:</h4>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Required</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>includeMovies</code></td>
+                                <td>boolean</td>
+                                <td>No</td>
+                                <td>Include associated movies in response (default: <code>true</code>). Set to <code>false</code> to exclude movies.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h4>Example:</h4>
+                    <pre><code class="language-bash">GET /api/media/references/directors/director-uuid
+GET /api/media/references/directors/director-uuid?includeMovies=false</code></pre>
                     <h4>Response:</h4>
                     <pre><code class="language-json">{
   "success": true,
@@ -1962,9 +1984,25 @@
     "slug": "director-name",
     "bio": "Director biography",
     "isActive": true,
-    "createdAt": "2025-01-01T00:00:00.000Z"
+    "photo": "https://cdn.example.com/directors/director-uuid.jpg",
+    "createdAt": "2025-01-01T00:00:00.000Z",
+    "movies": [
+      {
+        "id": "movie-uuid",
+        "title": "Movie Title",
+        "slug": "movie-title",
+        "description": "Movie description",
+        "year": 2024,
+        "duration": 120,
+        "status": "published",
+        "createdAt": "2025-01-01T00:00:00.000Z"
+      }
+    ]
   }
 }</code></pre>
+                    <div class="info-box">
+                        <strong>Note:</strong> Movies are included by default. The <code>movies</code> array contains all movies directed by this director, ordered by creation date (newest first). Set <code>includeMovies=false</code> to exclude movies from the response.
+                    </div>
                 </div>
 
                 <div class="endpoint">
@@ -2015,7 +2053,29 @@
                         <span class="badge badge-get">GET</span>
                         <span class="endpoint-path">/api/media/references/actors/:id</span>
                     </div>
-                    <div class="endpoint-description">Get actor profile by ID (includes media asset URL)</div>
+                    <div class="endpoint-description">Get actor profile by ID with associated movies</div>
+                    <h4>Query Parameters:</h4>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Required</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>includeMovies</code></td>
+                                <td>boolean</td>
+                                <td>No</td>
+                                <td>Include associated movies in response (default: <code>true</code>). Set to <code>false</code> to exclude movies.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h4>Example:</h4>
+                    <pre><code class="language-bash">GET /api/media/references/actors/actor-uuid
+GET /api/media/references/actors/actor-uuid?includeMovies=false</code></pre>
                     <h4>Response:</h4>
                     <pre><code class="language-json">{
   "success": true,
@@ -2025,10 +2085,25 @@
     "slug": "actor-name",
     "bio": "Actor biography",
     "isActive": true,
-    "mediaAssetUrl": "https://cdn.example.com/actors/actor-uuid.jpg",
-    "createdAt": "2025-01-01T00:00:00.000Z"
+    "photo": "https://cdn.example.com/actors/actor-uuid.jpg",
+    "createdAt": "2025-01-01T00:00:00.000Z",
+    "movies": [
+      {
+        "id": "movie-uuid",
+        "title": "Movie Title",
+        "slug": "movie-title",
+        "description": "Movie description",
+        "year": 2024,
+        "duration": 120,
+        "status": "published",
+        "createdAt": "2025-01-01T00:00:00.000Z"
+      }
+    ]
   }
 }</code></pre>
+                    <div class="info-box">
+                        <strong>Note:</strong> Movies are included by default. The <code>movies</code> array contains all movies featuring this actor, ordered by creation date (newest first). Set <code>includeMovies=false</code> to exclude movies from the response.
+                    </div>
                 </div>
 
                 <div class="endpoint">
@@ -2078,7 +2153,29 @@
                         <span class="badge badge-get">GET</span>
                         <span class="endpoint-path">/api/media/references/producers/:id</span>
                     </div>
-                    <div class="endpoint-description">Get producer profile by ID</div>
+                    <div class="endpoint-description">Get producer profile by ID with associated movies</div>
+                    <h4>Query Parameters:</h4>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Required</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>includeMovies</code></td>
+                                <td>boolean</td>
+                                <td>No</td>
+                                <td>Include associated movies in response (default: <code>true</code>). Set to <code>false</code> to exclude movies.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h4>Example:</h4>
+                    <pre><code class="language-bash">GET /api/media/references/producers/producer-uuid
+GET /api/media/references/producers/producer-uuid?includeMovies=false</code></pre>
                     <h4>Response:</h4>
                     <pre><code class="language-json">{
   "success": true,
@@ -2088,9 +2185,25 @@
     "slug": "producer-name",
     "bio": "Producer biography",
     "isActive": true,
-    "createdAt": "2025-01-01T00:00:00.000Z"
+    "photo": "https://cdn.example.com/producers/producer-uuid.jpg",
+    "createdAt": "2025-01-01T00:00:00.000Z",
+    "movies": [
+      {
+        "id": "movie-uuid",
+        "title": "Movie Title",
+        "slug": "movie-title",
+        "description": "Movie description",
+        "year": 2024,
+        "duration": 120,
+        "status": "published",
+        "createdAt": "2025-01-01T00:00:00.000Z"
+      }
+    ]
   }
 }</code></pre>
+                    <div class="info-box">
+                        <strong>Note:</strong> Movies are included by default. The <code>movies</code> array contains all movies produced by this producer, ordered by creation date (newest first). Set <code>includeMovies=false</code> to exclude movies from the response.
+                    </div>
                 </div>
             </section>
 
