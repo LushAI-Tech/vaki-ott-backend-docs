@@ -716,9 +716,9 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-post">POST</span>
-                        <span class="endpoint-path">/api/auth/verify-and-login</span>
+                        <span class="endpoint-path">/api/auth/register-and-login</span>
                     </div>
-                    <div class="endpoint-description">Unified authentication: Verify OTP and Login (or Register + Login if new user). This is the Netflix/Disney+ style passwordless authentication.</div>
+                    <div class="endpoint-description">Unified authentication: Register and Login (or Register + Login if new user). This is the Netflix/Disney+ style passwordless authentication.</div>
                     <div class="info-box" style="margin-top: 0.5rem; margin-bottom: 1rem;">
                         <strong>Note:</strong> This endpoint combines OTP verification and login into a single step. If the user exists, it logs them in. If the user doesn't exist, it creates a new account and logs them in automatically.
                     </div>
@@ -2376,9 +2376,9 @@ async function login(identifier, code) {
   return data;
 }
 
-// Verify OTP and Login (unified - creates account if user doesn't exist)
-async function verifyAndLogin(identifier, code, deviceInfo = {}, profileInfo = null) {
-  const response = await fetch(`${API_BASE_URL}/api/auth/verify-and-login`, {
+// Register and Login (unified - creates account if user doesn't exist)
+async function registerAndLogin(identifier, code, deviceInfo = {}, profileInfo = null) {
+  const response = await fetch(`${API_BASE_URL}/api/auth/register-and-login`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
