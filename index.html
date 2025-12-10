@@ -573,7 +573,7 @@
                     <strong>Route Prefixes:</strong>
                     <ul>
                         <li><strong>User Service:</strong> Routes are mounted directly (e.g., <code>/api/auth</code>, <code>/api/otp</code>, <code>/api/users</code>)</li>
-                        <li><strong>Content Service:</strong> Routes are prefixed with <code>/api/media/</code> (e.g., <code>/api/media/movies</code>, <code>/api/media/sections</code>)</li>
+                        <li><strong>Content Service:</strong> Routes are prefixed with <code>/api/content/</code> (e.g., <code>/api/content/movies</code>, <code>/api/content/sections</code>)</li>
                         <li><strong>Admin Service:</strong> Routes are prefixed with <code>/api/admin/</code> (e.g., <code>/api/admin/movies</code>)</li>
                     </ul>
                 </div>
@@ -1065,6 +1065,186 @@
   }
 }</code></pre>
                 </div>
+
+                <h3>Watch Later</h3>
+                <div class="info-box" style="margin-bottom: 1.5rem;">
+                    <strong>How Watch Later Works for Movies and Series:</strong>
+                    <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
+                        <li><strong>Movies:</strong> Add the movie's ID directly to watch later. The <code>contentId</code> is the movie ID.</li>
+                        <li><strong>Series Episodes:</strong> Each episode has a corresponding movie record (for video streaming). Add the episode's <code>movie_id</code> to watch later. The <code>contentId</code> is the episode's movie ID.</li>
+                        <li><strong>Differentiation:</strong> The GET endpoint returns a <code>mediaType</code> field in each item's <code>content</code> object. Use this field to differentiate between:
+                            <ul style="margin-top: 0.25rem; margin-left: 1.5rem;">
+                                <li><code>"movie"</code> - Standalone movies</li>
+                                <li><code>"short_film"</code> - Short films</li>
+                                <li><code>"documentary"</code> - Documentaries</li>
+                                <li><code>"bts"</code> - Behind the scenes content</li>
+                                <li><code>"reel"</code> - Reels</li>
+                                <li>Series episodes will have their own movie record with <code>mediaType</code> (typically <code>"movie"</code>), but you can identify them by checking if the movie ID is referenced in the episodes table</li>
+                            </ul>
+                        </li>
+                        <li><strong>Note:</strong> The watch later system stores all content as movie IDs. The API fetches content details from the <code>movies</code> table and includes the <code>mediaType</code> field to help you differentiate content types in your frontend.</li>
+                    </ul>
+                </div>
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">GET</span>
+                        <span class="endpoint-path">/api/users/me/profiles/:profileId/watch-later</span>
+                    </div>
+                    <div class="endpoint-description">List watch later items for a profile</div>
+                    <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span></p>
+                    <h4>Query Parameters:</h4>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Required</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>page</code></td>
+                                <td>number</td>
+                                <td>No</td>
+                                <td>Page number (default: 1)</td>
+                            </tr>
+                            <tr>
+                                <td><code>limit</code></td>
+                                <td>number</td>
+                                <td>No</td>
+                                <td>Items per page (default: 20, max: 100)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "items": [
+      {
+          "contentId": "movie-uuid",
+          "addedAt": "2025-01-15T10:30:00.000Z",
+          "content": {
+            "id": "movie-uuid",
+            "title": "Movie Title",
+            "slug": "movie-title",
+            "description": "Movie description",
+            "shortDescription": "Short description",
+            "year": 2024,
+            "duration": 120,
+            "releaseDate": "2024-01-15",
+            "isReleased": true,
+            "contentType": "free",
+            "status": "published",
+            "mediaType": "movie", // Use this field to differentiate: "movie", "short_film", "documentary", "bts", "reel"
+          "language": {
+            "id": "language-uuid",
+            "name": "English",
+            "code": "en"
+          },
+            "rating": {
+              "id": "rating-uuid",
+              "name": "PG-13"
+            },
+            "posterUrl": "https://cdn.example.com/posters/movie-uuid.jpg"
+          }
+        },
+        {
+          "contentId": "episode-movie-uuid",
+          "addedAt": "2025-01-14T15:20:00.000Z",
+          "content": {
+            "id": "episode-movie-uuid",
+            "title": "Episode Title",
+            "slug": "episode-title",
+            "description": "Episode description",
+            "shortDescription": "Short description",
+            "year": 2024,
+            "duration": 45,
+            "releaseDate": "2024-01-10",
+            "isReleased": true,
+            "contentType": "free",
+            "status": "published",
+            "mediaType": "movie", // Series episodes also use "movie" mediaType
+          "language": {
+            "id": "language-uuid",
+            "name": "English",
+            "code": "en"
+          },
+          "rating": {
+            "id": "rating-uuid",
+            "name": "PG-13"
+          },
+          "posterUrl": "https://cdn.example.com/posters/episode-movie-uuid.jpg"
+        }
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 20,
+      "total": 50,
+      "totalPages": 3
+    }
+  }
+}</code></pre>
+                    <div class="info-box" style="margin-top: 1rem;">
+                        <strong>Identifying Series Episodes:</strong> To determine if a watch later item is a series episode (vs a standalone movie), you'll need to check if the movie ID exists in the episodes table. This typically requires a separate API call or checking episode metadata if available in your content service endpoints. The <code>mediaType</code> field alone won't distinguish episodes from movies, as both use <code>"movie"</code>.
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-post">POST</span>
+                        <span class="endpoint-path">/api/users/me/profiles/:profileId/watch-later</span>
+                    </div>
+                    <div class="endpoint-description">Add content to watch later</div>
+                    <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span></p>
+                    <h4>Request Body:</h4>
+                    <pre><code class="language-json">{
+  "contentId": "movie-uuid"
+}</code></pre>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "contentId": "movie-uuid",
+    "addedAt": "2025-01-15T10:30:00.000Z"
+  }
+}</code></pre>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">GET</span>
+                        <span class="endpoint-path">/api/users/me/profiles/:profileId/watch-later/:contentId</span>
+                    </div>
+                    <div class="endpoint-description">Check if content is in watch later</div>
+                    <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span></p>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "isInWatchLater": true,
+    "addedAt": "2025-01-15T10:30:00.000Z"
+  }
+}</code></pre>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-delete">DELETE</span>
+                        <span class="endpoint-path">/api/users/me/profiles/:profileId/watch-later/:contentId</span>
+                    </div>
+                    <div class="endpoint-description">Remove content from watch later</div>
+                    <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span></p>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "removed": "movie-uuid"
+  }
+}</code></pre>
+                </div>
             </section>
 
             <!-- Content Service: Movies API -->
@@ -1072,13 +1252,13 @@
                 <h2>Movies API</h2>
                 <p>Public catalog endpoints for browsing and viewing movie content. No authentication required.</p>
                 <div class="info-box" style="margin-bottom: 1.5rem;">
-                    <strong>Route Prefix:</strong> All Content Service routes are prefixed with <code>/api/media/</code>
+                    <strong>Route Prefix:</strong> All Content Service routes are prefixed with <code>/api/content/</code>
                 </div>
 
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/media/movies</span>
+                        <span class="endpoint-path">/api/content/movies</span>
                     </div>
                     <div class="endpoint-description">Get paginated list of movies with filters</div>
                     <h4>Query Parameters:</h4>
@@ -1119,7 +1299,7 @@
                         </tbody>
                     </table>
                     <h4>Example:</h4>
-                    <pre><code class="language-bash">GET /api/media/movies?page=1&limit=12&status=published</code></pre>
+                    <pre><code class="language-bash">GET /api/content/movies?page=1&limit=12&status=published</code></pre>
                     <h4>Response:</h4>
                     <pre><code class="language-json">{
   "success": true,
@@ -1129,15 +1309,14 @@
         "id": "movie-uuid",
         "title": "Movie Title",
         "status": "published",
-        "year": 2024,
-        "duration": 120,
-        "category": "Action",
-        "language": "English",
-        "rating": "PG-13",
-        "genres": ["Action", "Thriller"],
-        "posterUrl": "https://cdn.example.com/posters/movie-uuid.jpg",
-        "backdropUrl": "https://cdn.example.com/backdrops/movie-uuid.jpg",
-        "createdAt": "2025-01-01T00:00:00.000Z"
+          "year": 2024,
+          "duration": 120,
+          "language": "English",
+          "rating": "PG-13",
+          "genres": ["Action", "Thriller"],
+          "posterUrl": "https://cdn.example.com/posters/movie-uuid.jpg",
+          "backdropUrl": "https://cdn.example.com/backdrops/movie-uuid.jpg",
+          "createdAt": "2025-01-01T00:00:00.000Z"
       }
     ],
     "pagination": {
@@ -1153,12 +1332,12 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/media/movies/:id</span>
+                        <span class="endpoint-path">/api/content/movies/:id</span>
                     </div>
                     <div class="endpoint-description">Get detailed movie information by ID with recommendations</div>
                     
                     <h4>Example:</h4>
-                    <pre><code class="language-bash">GET /api/media/movies/abc123</code></pre>
+                    <pre><code class="language-bash">GET /api/content/movies/abc123</code></pre>
                     <h4>Response:</h4>
                     <pre><code class="language-json">{
   "success": true,
@@ -1174,11 +1353,6 @@
     "status": "published",
     "contentType": "free",
     "isReleased": true,
-    "category": {
-      "id": "category-uuid",
-      "name": "Action",
-      "slug": "action"
-    },
     "language": {
       "id": "language-uuid",
       "name": "English",
@@ -1238,6 +1412,7 @@
       "playbackUrl": "https://customer-xyz.cloudflarestream.com/...",
       "status": "ready"
     },
+    "titleImageUrl": "https://cdn.example.com/title-images/movie-uuid.jpg",
     "recommendations": [
       {
         "id": "recommended-movie-uuid",
@@ -1245,26 +1420,26 @@
         "status": "published",
         "year": 2024,
         "duration": 120,
-        "category": "Action",
         "language": "English",
         "rating": "PG-13",
         "genres": ["Action", "Thriller"],
         "posterUrl": "https://cdn.example.com/posters/recommended-movie-uuid.jpg",
         "backdropUrl": "https://cdn.example.com/backdrops/recommended-movie-uuid.jpg",
+        "titleImageUrl": "https://cdn.example.com/title-images/recommended-movie-uuid.jpg",
         "createdAt": "2024-01-01T00:00:00.000Z"
       }
     ]
   }
 }</code></pre>
                     <div class="info-box">
-                        <strong>Note:</strong> This endpoint includes movie recommendations based on shared genres, directors, actors, and category. Recommendations are ordered by relevance (more shared genres = higher priority). The response includes photos for directors, cast, and producers, as well as trailer video information if available.
+                        <strong>Note:</strong> This endpoint includes movie recommendations based on shared genres, directors, and actors. Recommendations are ordered by relevance (more shared genres = higher priority). The response includes photos for directors, cast, and producers, as well as trailer video information if available. Title images are included for hero sections.
                     </div>
                 </div>
 
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/media/movies/:id/with-photos</span>
+                        <span class="endpoint-path">/api/content/movies/:id/with-photos</span>
                     </div>
                     <div class="endpoint-description">Get movie details with all media assets</div>
                     <h4>Response:</h4>
@@ -1276,7 +1451,6 @@
     "description": "Movie description",
     "year": 2024,
     "duration": 120,
-    "category": { "id": "category-uuid", "name": "Action" },
     "language": { "id": "language-uuid", "name": "English" },
     "rating": { "id": "rating-uuid", "name": "PG-13" },
     "genres": [{"id": "genre-uuid", "name": "Action"}],
@@ -1301,7 +1475,7 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/media/movies/:id/video-status</span>
+                        <span class="endpoint-path">/api/content/movies/:id/video-status</span>
                     </div>
                     <div class="endpoint-description">Get video transcoding status and thumbnails</div>
                     <h4>Response:</h4>
@@ -1336,9 +1510,9 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/media/movies/:id/image-status</span>
+                        <span class="endpoint-path">/api/content/movies/:id/image-status</span>
                     </div>
-                    <div class="endpoint-description">Get poster/backdrop status grouped by category/resolution</div>
+                    <div class="endpoint-description">Get poster/backdrop status grouped by file category and resolution</div>
                     <h4>Response:</h4>
                     <pre><code class="language-json">{
   "success": true,
@@ -1380,13 +1554,13 @@
                 <p>Get sections with populated movie data for different contexts and platforms. Supports multiple contexts: home, movies, short films, documentaries, bts, search, and profile.</p>
 
                 <div class="info-box warning">
-                    <strong>Deprecated:</strong> The <code>/api/media/home</code> endpoint is deprecated. Use <code>/api/media/sections?context=home&platform=...</code> instead. The old endpoint still works for backward compatibility but redirects to the new endpoint.
+                    <strong>Deprecated:</strong> The <code>/api/content/home</code> endpoint is deprecated. Use <code>/api/content/sections?context=home&platform=...</code> instead. The old endpoint still works for backward compatibility but redirects to the new endpoint.
                 </div>
 
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/media/sections</span>
+                        <span class="endpoint-path">/api/content/sections</span>
                     </div>
                     <div class="endpoint-description">Get active sections for a context and platform</div>
                     <h4>Query Parameters:</h4>
@@ -1415,7 +1589,7 @@
                         </tbody>
                     </table>
                     <h4>Example:</h4>
-                    <pre><code class="language-bash">GET /api/media/sections?context=home&platform=web</code></pre>
+                    <pre><code class="language-bash">GET /api/content/sections?context=home&platform=web</code></pre>
                     <h4>Response Structure:</h4>
                     <pre><code class="language-json">{
   "success": true,
@@ -1433,7 +1607,15 @@
       "showViewAll": true,
       "styleConfig": {
         "background": "dark",
-        "showArrows": true
+        "showArrows": true,
+        "showDots": false,
+        "titleImageTransition": {
+          "type": "fade-slide-up",
+          "duration": 700,
+          "easing": "ease-out",
+          "delay": 200,
+          "distance": 30
+        }
       },
       "dataSourceType": "query", // or "manual"
       "movies": [
@@ -1444,12 +1626,12 @@
           "description": "Movie description",
           "year": 2024,
           "duration": 120,
-          "category": "Action",
           "language": "English",
           "rating": "PG-13",
           "genres": ["Action", "Thriller"],
           "posterUrl": "https://cdn.example.com/posters/movie-456.jpg",
-          "backdropUrl": "https://cdn.example.com/backdrops/movie-456.jpg"
+          "backdropUrl": "https://cdn.example.com/backdrops/movie-456.jpg",
+          "titleImageUrl": "https://cdn.example.com/title-images/movie-456.jpg"
         }
       ],
       "queryConfig": {
@@ -1538,6 +1720,86 @@
                     <div class="info-box">
                         <strong>Note:</strong> Returns only active sections that respect <code>startDate</code> and <code>endDate</code> scheduling. Sections are sorted by <code>displayOrder</code> (ascending), then <code>priority</code> (descending). Sections with <code>platform=web</code> are shown on all platforms.
                     </div>
+                    <h4>Style Configuration:</h4>
+                    <p>The <code>styleConfig</code> field contains styling and animation configuration for sections. For hero sections, it includes <code>titleImageTransition</code> which controls how title images animate onto the screen.</p>
+                    <h5>Title Image Transition Options:</h5>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Field</th>
+                                <th>Type</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>type</code></td>
+                                <td>string</td>
+                                <td>Transition type: <code>fade</code>, <code>slide-up</code>, <code>slide-down</code>, <code>slide-left</code>, <code>slide-right</code>, <code>scale</code>, <code>fade-scale</code>, <code>fade-slide-up</code>, <code>zoom-in</code>, or <code>none</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>duration</code></td>
+                                <td>number</td>
+                                <td>Duration in milliseconds (0-2000)</td>
+                            </tr>
+                            <tr>
+                                <td><code>easing</code></td>
+                                <td>string</td>
+                                <td>CSS easing function: <code>linear</code>, <code>ease</code>, <code>ease-in</code>, <code>ease-out</code>, <code>ease-in-out</code>, or custom cubic-bezier</td>
+                            </tr>
+                            <tr>
+                                <td><code>delay</code></td>
+                                <td>number</td>
+                                <td>Optional delay in milliseconds (0-1000) before animation starts</td>
+                            </tr>
+                            <tr>
+                                <td><code>distance</code></td>
+                                <td>number</td>
+                                <td>Optional distance in pixels (0-200) for slide animations</td>
+                            </tr>
+                            <tr>
+                                <td><code>scaleFrom</code></td>
+                                <td>number</td>
+                                <td>Optional starting scale (0.0-2.0) for scale animations</td>
+                            </tr>
+                            <tr>
+                                <td><code>scaleTo</code></td>
+                                <td>number</td>
+                                <td>Optional ending scale (0.0-2.0) for scale animations</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h5>Example Style Configurations:</h5>
+                    <pre><code class="language-json">// Hero section with title image transition
+{
+  "titleImageTransition": {
+    "type": "fade-slide-up",
+    "duration": 700,
+    "easing": "ease-out",
+    "delay": 200,
+    "distance": 30
+  },
+  "background": "dark",
+  "showIndicators": true
+}
+
+// Carousel section
+{
+  "background": "transparent",
+  "showArrows": true,
+  "showDots": true,
+  "cardVariant": "poster",
+  "spacing": "normal",
+  "gap": 16
+}</code></pre>
+                    <div class="info-box">
+                        <strong>Platform-Specific Image Sizes:</strong> The API automatically returns appropriate image resolutions based on the platform parameter:
+                        <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
+                            <li><strong>Mobile:</strong> Returns <code>MEDIUM</code> resolution images for <code>posterUrl</code> and <code>backdropUrl</code></li>
+                            <li><strong>Web/TV:</strong> Returns <code>LARGE</code> resolution images for <code>posterUrl</code> and <code>backdropUrl</code></li>
+                        </ul>
+                        Falls back to <code>ORIGINAL</code> if the preferred resolution is not available. See <a href="docs/section-style-config.md" target="_blank">Section Style Configuration Guide</a> for complete documentation.
+                    </div>
                 </div>
             </section>
 
@@ -1549,7 +1811,7 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/media/assets</span>
+                        <span class="endpoint-path">/api/content/assets</span>
                     </div>
                     <div class="endpoint-description">Get media assets by entity type and ID</div>
                     <h4>Query Parameters:</h4>
@@ -1578,7 +1840,7 @@
                         </tbody>
                     </table>
                     <h4>Example:</h4>
-                    <pre><code class="language-bash">GET /api/media/assets?entityType=movie&entityId=MOV123</code></pre>
+                    <pre><code class="language-bash">GET /api/content/assets?entityType=movie&entityId=MOV123</code></pre>
                     <h4>Response:</h4>
                     <pre><code class="language-json">{
   "success": true,
@@ -1614,11 +1876,11 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/media/assets/movies/:movieId</span>
+                        <span class="endpoint-path">/api/content/assets/movies/:movieId</span>
                     </div>
                     <div class="endpoint-description">Get movie assets grouped by type (posters, backdrops, videos, trailers, subtitles)</div>
                     <h4>Example:</h4>
-                    <pre><code class="language-bash">GET /api/media/assets/movies/abc123</code></pre>
+                    <pre><code class="language-bash">GET /api/content/assets/movies/abc123</code></pre>
                     <h4>Response:</h4>
                     <pre><code class="language-json">{
   "success": true,
@@ -1659,11 +1921,11 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/media/assets/:assetId/url</span>
+                        <span class="endpoint-path">/api/content/assets/:assetId/url</span>
                     </div>
                     <div class="endpoint-description">Get presigned CDN URL for an asset with expiry metadata</div>
                     <h4>Example:</h4>
-                    <pre><code class="language-bash">GET /api/media/assets/asset-123/url?expiresIn=3600</code></pre>
+                    <pre><code class="language-bash">GET /api/content/assets/asset-123/url?expiresIn=3600</code></pre>
                     <h4>Response:</h4>
                     <pre><code class="language-json">{
   "success": true,
@@ -1678,36 +1940,16 @@
             <!-- Content Service: References API -->
             <section id="references-api" class="section">
                 <h2>References API</h2>
-                <p>Get metadata lookups for categories, genres, languages, content ratings, and people.</p>
-
-                <h3>Categories</h3>
-                <div class="endpoint">
-                    <div class="endpoint-header">
-                        <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/media/references/categories</span>
-                    </div>
-                    <div class="endpoint-description">Get active content categories sorted by display order</div>
-                    <h4>Response:</h4>
-                    <pre><code class="language-json">{
-  "success": true,
-  "data": [
-    {
-      "id": "category-uuid",
-      "name": "Movies",
-      "slug": "movies",
-      "displayOrder": 1,
-      "isActive": true,
-      "createdAt": "2025-01-01T00:00:00.000Z"
-    }
-  ]
-}</code></pre>
+                <p>Get metadata lookups for genres, languages, content ratings, and people.</p>
+                <div class="info-box warning">
+                    <strong>Note:</strong> Content categories have been removed. Content classification is now handled through <code>genres</code> and the <code>mediaType</code> field. Use genres for content classification instead of categories.
                 </div>
 
                 <h3>Genres</h3>
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/media/references/genres</span>
+                        <span class="endpoint-path">/api/content/references/genres</span>
                     </div>
                     <div class="endpoint-description">Get genres with optional filters</div>
                     <h4>Query Parameters:</h4>
@@ -1751,7 +1993,7 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/media/references/genres/:id</span>
+                        <span class="endpoint-path">/api/content/references/genres/:id</span>
                     </div>
                     <div class="endpoint-description">Get single genre by ID</div>
                     <h4>Response:</h4>
@@ -1773,7 +2015,7 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/media/references/languages</span>
+                        <span class="endpoint-path">/api/content/references/languages</span>
                     </div>
                     <div class="endpoint-description">Get languages with optional search</div>
                     <h4>Query Parameters:</h4>
@@ -1811,7 +2053,7 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/media/references/languages/:id</span>
+                        <span class="endpoint-path">/api/content/references/languages/:id</span>
                     </div>
                     <div class="endpoint-description">Get single language by ID</div>
                     <h4>Response:</h4>
@@ -1832,7 +2074,7 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/media/references/content-ratings</span>
+                        <span class="endpoint-path">/api/content/references/content-ratings</span>
                     </div>
                     <div class="endpoint-description">Get all content ratings</div>
                     <h4>Response:</h4>
@@ -1853,7 +2095,7 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/media/references/content-ratings/:id</span>
+                        <span class="endpoint-path">/api/content/references/content-ratings/:id</span>
                     </div>
                     <div class="endpoint-description">Get single content rating by ID</div>
                     <h4>Response:</h4>
@@ -1874,7 +2116,7 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/media/references/stream-videos</span>
+                        <span class="endpoint-path">/api/content/references/stream-videos</span>
                     </div>
                     <div class="endpoint-description">Get stream videos with optional filters</div>
                     <h4>Query Parameters:</h4>
@@ -1920,7 +2162,7 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/media/references/movies/:movieId/stream-videos</span>
+                        <span class="endpoint-path">/api/content/references/movies/:movieId/stream-videos</span>
                     </div>
                     <div class="endpoint-description">Get stream videos for a specific movie</div>
                     <h4>Response:</h4>
@@ -1944,7 +2186,7 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/media/references/directors</span>
+                        <span class="endpoint-path">/api/content/references/directors</span>
                     </div>
                     <div class="endpoint-description">Search directors</div>
                     <h4>Query Parameters:</h4>
@@ -1986,7 +2228,7 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/media/references/directors/:id</span>
+                        <span class="endpoint-path">/api/content/references/directors/:id</span>
                     </div>
                     <div class="endpoint-description">Get director profile by ID with associated movies</div>
                     <h4>Query Parameters:</h4>
@@ -2009,8 +2251,8 @@
                         </tbody>
                     </table>
                     <h4>Example:</h4>
-                    <pre><code class="language-bash">GET /api/media/references/directors/director-uuid
-GET /api/media/references/directors/director-uuid?includeMovies=false</code></pre>
+                    <pre><code class="language-bash">GET /api/content/references/directors/director-uuid
+GET /api/content/references/directors/director-uuid?includeMovies=false</code></pre>
                     <h4>Response:</h4>
                     <pre><code class="language-json">{
   "success": true,
@@ -2044,7 +2286,7 @@ GET /api/media/references/directors/director-uuid?includeMovies=false</code></pr
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/media/references/actors</span>
+                        <span class="endpoint-path">/api/content/references/actors</span>
                     </div>
                     <div class="endpoint-description">Search actors</div>
                     <h4>Query Parameters:</h4>
@@ -2088,7 +2330,7 @@ GET /api/media/references/directors/director-uuid?includeMovies=false</code></pr
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/media/references/actors/:id</span>
+                        <span class="endpoint-path">/api/content/references/actors/:id</span>
                     </div>
                     <div class="endpoint-description">Get actor profile by ID with associated movies</div>
                     <h4>Query Parameters:</h4>
@@ -2111,8 +2353,8 @@ GET /api/media/references/directors/director-uuid?includeMovies=false</code></pr
                         </tbody>
                     </table>
                     <h4>Example:</h4>
-                    <pre><code class="language-bash">GET /api/media/references/actors/actor-uuid
-GET /api/media/references/actors/actor-uuid?includeMovies=false</code></pre>
+                    <pre><code class="language-bash">GET /api/content/references/actors/actor-uuid
+GET /api/content/references/actors/actor-uuid?includeMovies=false</code></pre>
                     <h4>Response:</h4>
                     <pre><code class="language-json">{
   "success": true,
@@ -2146,7 +2388,7 @@ GET /api/media/references/actors/actor-uuid?includeMovies=false</code></pre>
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/media/references/producers</span>
+                        <span class="endpoint-path">/api/content/references/producers</span>
                     </div>
                     <div class="endpoint-description">Search producers</div>
                     <h4>Query Parameters:</h4>
@@ -2188,7 +2430,7 @@ GET /api/media/references/actors/actor-uuid?includeMovies=false</code></pre>
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/media/references/producers/:id</span>
+                        <span class="endpoint-path">/api/content/references/producers/:id</span>
                     </div>
                     <div class="endpoint-description">Get producer profile by ID with associated movies</div>
                     <h4>Query Parameters:</h4>
@@ -2211,8 +2453,8 @@ GET /api/media/references/actors/actor-uuid?includeMovies=false</code></pre>
                         </tbody>
                     </table>
                     <h4>Example:</h4>
-                    <pre><code class="language-bash">GET /api/media/references/producers/producer-uuid
-GET /api/media/references/producers/producer-uuid?includeMovies=false</code></pre>
+                    <pre><code class="language-bash">GET /api/content/references/producers/producer-uuid
+GET /api/content/references/producers/producer-uuid?includeMovies=false</code></pre>
                     <h4>Response:</h4>
                     <pre><code class="language-json">{
   "success": true,
@@ -2252,7 +2494,7 @@ GET /api/media/references/producers/producer-uuid?includeMovies=false</code></pr
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/media/people/search</span>
+                        <span class="endpoint-path">/api/content/people/search</span>
                     </div>
                     <div class="endpoint-description">Search across all people types</div>
                     <h4>Query Parameters:</h4>
@@ -2281,7 +2523,7 @@ GET /api/media/references/producers/producer-uuid?includeMovies=false</code></pr
                         </tbody>
                     </table>
                     <h4>Example:</h4>
-                    <pre><code class="language-bash">GET /api/media/people/search?q=raj&type=directors</code></pre>
+                    <pre><code class="language-bash">GET /api/content/people/search?q=raj&type=directors</code></pre>
                     <p>Returns up to 10 matches per type.</p>
                     <h4>Response:</h4>
                     <pre><code class="language-json">{
@@ -2316,7 +2558,7 @@ GET /api/media/references/producers/producer-uuid?includeMovies=false</code></pr
                 <p>All API endpoints return errors in a consistent format:</p>
                 <pre><code class="language-json">{
   "error": "Error message",
-  "path": "/api/media/movies",
+  "path": "/api/content/movies",
   "method": "GET",
   "status": 404,
   "timestamp": "2025-01-15T10:30:00.000Z"
@@ -2442,7 +2684,7 @@ async function registerAndLogin(identifier, code, deviceInfo = {}, profileInfo =
 // Get movies (public endpoint)
 async function getMovies(page = 1, limit = 20) {
   const response = await fetch(
-    `${API_BASE_URL}/api/media/movies?page=${page}&limit=${limit}&status=published`
+    `${API_BASE_URL}/api/content/movies?page=${page}&limit=${limit}&status=published`
   );
   return response.json();
 }
@@ -2450,7 +2692,7 @@ async function getMovies(page = 1, limit = 20) {
 // Get sections for a context and platform
 async function getSections(context = 'home', platform = 'web') {
   const response = await fetch(
-    `${API_BASE_URL}/api/media/sections?context=${context}&platform=${platform}`
+    `${API_BASE_URL}/api/content/sections?context=${context}&platform=${platform}`
   );
   return response.json();
 }
@@ -2503,6 +2745,42 @@ async function getCurrentUser() {
 // Get user profiles
 async function getUserProfiles() {
   const response = await authenticatedFetch('/api/users/me/profiles');
+  return response.json();
+}
+
+// Watch Later functions
+async function getWatchLater(profileId, page = 1, limit = 20) {
+  const response = await authenticatedFetch(
+    `/api/users/me/profiles/${profileId}/watch-later?page=${page}&limit=${limit}`
+  );
+  return response.json();
+}
+
+async function addToWatchLater(profileId, contentId) {
+  const response = await authenticatedFetch(
+    `/api/users/me/profiles/${profileId}/watch-later`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ contentId }),
+    }
+  );
+  return response.json();
+}
+
+async function removeFromWatchLater(profileId, contentId) {
+  const response = await authenticatedFetch(
+    `/api/users/me/profiles/${profileId}/watch-later/${contentId}`,
+    {
+      method: 'DELETE',
+    }
+  );
+  return response.json();
+}
+
+async function checkWatchLater(profileId, contentId) {
+  const response = await authenticatedFetch(
+    `/api/users/me/profiles/${profileId}/watch-later/${contentId}`
+  );
   return response.json();
 }</code></pre>
             </section>
