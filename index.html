@@ -543,9 +543,15 @@
                     <a href="#users-api" class="nav-link sub">Users & Profiles</a>
                 </div>
                 <div class="nav-section">
+                    <div class="nav-section-title">Payment Service</div>
+                    <a href="#payments-api" class="nav-link sub">Payments & Rentals</a>
+                </div>
+                <div class="nav-section">
                     <div class="nav-section-title">Content Service</div>
                     <a href="#movies-api" class="nav-link sub">Movies</a>
+                    <a href="#reels-api" class="nav-link sub">Reels</a>
                     <a href="#sections-api" class="nav-link sub">Sections</a>
+                    <a href="#stream-api" class="nav-link sub">Streaming</a>
                     <a href="#assets-api" class="nav-link sub">Assets</a>
                     <a href="#references-api" class="nav-link sub">References</a>
                     <a href="#people-api" class="nav-link sub">People</a>
@@ -573,7 +579,8 @@
                     <strong>Route Prefixes:</strong>
                     <ul>
                         <li><strong>User Service:</strong> Routes are mounted directly (e.g., <code>/api/auth</code>, <code>/api/otp</code>, <code>/api/users</code>)</li>
-                        <li><strong>Content Service:</strong> Routes are prefixed with <code>/api/content/</code> (e.g., <code>/api/content/movies</code>, <code>/api/content/sections</code>)</li>
+                        <li><strong>Payment Service:</strong> Routes are prefixed with <code>/api/payments</code> (e.g., <code>/api/payments/create</code>, <code>/api/payments/rentals/active</code>)</li>
+                        <li><strong>Content Service:</strong> Routes are prefixed with <code>/api/content/</code> (e.g., <code>/api/content/movies</code>, <code>/api/content/reels</code>, <code>/api/content/sections</code>)</li>
                         <li><strong>Admin Service:</strong> Routes are prefixed with <code>/api/admin/</code> (e.g., <code>/api/admin/movies</code>)</li>
                     </ul>
                 </div>
@@ -1068,21 +1075,23 @@
 
                 <h3>Watch Later</h3>
                 <div class="info-box" style="margin-bottom: 1.5rem;">
-                    <strong>How Watch Later Works for Movies and Series:</strong>
+                    <strong>How Watch Later Works for Movies, Series, and Episodes:</strong>
                     <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
-                        <li><strong>Movies:</strong> Add the movie's ID directly to watch later. The <code>contentId</code> is the movie ID.</li>
-                        <li><strong>Series Episodes:</strong> Each episode has a corresponding movie record (for video streaming). Add the episode's <code>movie_id</code> to watch later. The <code>contentId</code> is the episode's movie ID.</li>
-                        <li><strong>Differentiation:</strong> The GET endpoint returns a <code>mediaType</code> field in each item's <code>content</code> object. Use this field to differentiate between:
+                        <li><strong>Movies, Short Films, Documentaries, BTS, Reels:</strong> Use <code>contentType: "movie"</code> (or <code>"short_film"</code>, <code>"documentary"</code>, <code>"bts"</code>, <code>"reel"</code>) and provide the <code>contentId</code> (movie ID).</li>
+                        <li><strong>Series:</strong> Use <code>contentType: "series"</code> and provide the <code>seriesId</code>. This adds the entire series to watch later.</li>
+                        <li><strong>Episodes:</strong> Use <code>contentType: "episode"</code> and provide the <code>episodeId</code>. This adds a specific episode to watch later.</li>
+                        <li><strong>Content Types:</strong> The API supports the following content types:
                             <ul style="margin-top: 0.25rem; margin-left: 1.5rem;">
                                 <li><code>"movie"</code> - Standalone movies</li>
                                 <li><code>"short_film"</code> - Short films</li>
                                 <li><code>"documentary"</code> - Documentaries</li>
                                 <li><code>"bts"</code> - Behind the scenes content</li>
                                 <li><code>"reel"</code> - Reels</li>
-                                <li>Series episodes will have their own movie record with <code>mediaType</code> (typically <code>"movie"</code>), but you can identify them by checking if the movie ID is referenced in the episodes table</li>
+                                <li><code>"series"</code> - TV series/shows</li>
+                                <li><code>"episode"</code> - Individual series episodes</li>
                             </ul>
                         </li>
-                        <li><strong>Note:</strong> The watch later system stores all content as movie IDs. The API fetches content details from the <code>movies</code> table and includes the <code>mediaType</code> field to help you differentiate content types in your frontend.</li>
+                        <li><strong>Note:</strong> The watch later system now supports all content types with dedicated fields. The response includes the <code>contentType</code> field to help you differentiate content types in your frontend.</li>
                     </ul>
                 </div>
                 <div class="endpoint">
@@ -1121,51 +1130,24 @@
                     <pre><code class="language-json">{
   "success": true,
   "data": {
-    "items": [
+    "data": [
       {
-          "contentId": "movie-uuid",
-          "addedAt": "2025-01-15T10:30:00.000Z",
-          "content": {
-            "id": "movie-uuid",
-            "title": "Movie Title",
-            "slug": "movie-title",
-            "description": "Movie description",
-            "shortDescription": "Short description",
-            "year": 2024,
-            "duration": 120,
-            "releaseDate": "2024-01-15",
-            "isReleased": true,
-            "contentType": "free",
-            "status": "published",
-            "mediaType": "movie", // Use this field to differentiate: "movie", "short_film", "documentary", "bts", "reel"
-          "language": {
-            "id": "language-uuid",
-            "name": "English",
-            "code": "en"
-          },
-            "rating": {
-              "id": "rating-uuid",
-              "name": "PG-13"
-            },
-            "posterUrl": "https://cdn.example.com/posters/movie-uuid.jpg"
-          }
-        },
-        {
-          "contentId": "episode-movie-uuid",
-          "addedAt": "2025-01-14T15:20:00.000Z",
-          "content": {
-            "id": "episode-movie-uuid",
-            "title": "Episode Title",
-            "slug": "episode-title",
-            "description": "Episode description",
-            "shortDescription": "Short description",
-            "year": 2024,
-            "duration": 45,
-            "releaseDate": "2024-01-10",
-            "isReleased": true,
-            "contentType": "free",
-            "status": "published",
-            "mediaType": "movie", // Series episodes also use "movie" mediaType
+        "contentType": "movie",
+        "contentId": "movie-uuid",
+        "addedAt": "2025-01-15T10:30:00.000Z",
+        "content": {
+          "id": "movie-uuid",
+          "title": "Movie Title",
+          "slug": "movie-title",
+          "description": "Movie description",
+          "shortDescription": "Short description",
+          "year": 2024,
+          "duration": 120,
+          "releaseDate": "2024-01-15",
+          "isReleased": true,
+          "contentType": "free",
+          "status": "published",
+          "mediaType": "movie",
           "language": {
             "id": "language-uuid",
             "name": "English",
@@ -1173,9 +1155,59 @@
           },
           "rating": {
             "id": "rating-uuid",
-            "name": "PG-13"
+            "name": "PG-13",
+            "slug": "pg-13"
           },
-          "posterUrl": "https://cdn.example.com/posters/episode-movie-uuid.jpg"
+          "posterUrl": "https://cdn.example.com/posters/movie-uuid.jpg"
+        }
+      },
+      {
+        "contentType": "series",
+        "seriesId": "series-uuid",
+        "addedAt": "2025-01-14T15:20:00.000Z",
+        "content": {
+          "id": "series-uuid",
+          "title": "Series Title",
+          "slug": "series-title",
+          "description": "Series description",
+          "shortDescription": "Short description",
+          "year": 2024,
+          "releaseDate": "2024-01-10",
+          "isReleased": true,
+          "contentType": "free",
+          "status": "published",
+          "language": {
+            "id": "language-uuid",
+            "name": "English",
+            "code": "en"
+          },
+          "rating": {
+            "id": "rating-uuid",
+            "name": "PG-13",
+            "slug": "pg-13"
+          },
+          "posterUrl": "https://cdn.example.com/posters/series-uuid.jpg"
+        }
+      },
+      {
+        "contentType": "episode",
+        "episodeId": "episode-uuid",
+        "addedAt": "2025-01-13T12:10:00.000Z",
+        "content": {
+          "id": "episode-uuid",
+          "title": "Episode Title",
+          "description": "Episode description",
+          "shortDescription": "Short description",
+          "year": 2024,
+          "releaseDate": "2024-01-08",
+          "isReleased": true,
+          "contentType": "free",
+          "status": "published",
+          "episodeNumber": 1,
+          "seasonNumber": 1,
+          "seriesTitle": "Series Title",
+          "seriesId": "series-uuid",
+          "posterUrl": "https://cdn.example.com/posters/series-uuid.jpg"
         }
       }
     ],
@@ -1188,7 +1220,12 @@
   }
 }</code></pre>
                     <div class="info-box" style="margin-top: 1rem;">
-                        <strong>Identifying Series Episodes:</strong> To determine if a watch later item is a series episode (vs a standalone movie), you'll need to check if the movie ID exists in the episodes table. This typically requires a separate API call or checking episode metadata if available in your content service endpoints. The <code>mediaType</code> field alone won't distinguish episodes from movies, as both use <code>"movie"</code>.
+                        <strong>Content Type Identification:</strong> Each watch later item includes a <code>contentType</code> field that clearly identifies the type of content:
+                        <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
+                            <li><code>"movie"</code>, <code>"short_film"</code>, <code>"documentary"</code>, <code>"bts"</code>, <code>"reel"</code> - Use <code>contentId</code> field</li>
+                            <li><code>"series"</code> - Use <code>seriesId</code> field</li>
+                            <li><code>"episode"</code> - Use <code>episodeId</code> field, includes <code>episodeNumber</code>, <code>seasonNumber</code>, and <code>seriesTitle</code> in the content object</li>
+                        </ul>
                     </div>
                 </div>
 
@@ -1200,14 +1237,46 @@
                     <div class="endpoint-description">Add content to watch later</div>
                     <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span></p>
                     <h4>Request Body:</h4>
+                    <p>For movies, short films, documentaries, BTS, or reels:</p>
                     <pre><code class="language-json">{
+  "contentType": "movie",
   "contentId": "movie-uuid"
 }</code></pre>
+                    <p>For series:</p>
+                    <pre><code class="language-json">{
+  "contentType": "series",
+  "seriesId": "series-uuid"
+}</code></pre>
+                    <p>For episodes:</p>
+                    <pre><code class="language-json">{
+  "contentType": "episode",
+  "episodeId": "episode-uuid"
+}</code></pre>
                     <h4>Response:</h4>
+                    <p>For movies/short films/documentaries/BTS/reels:</p>
                     <pre><code class="language-json">{
   "success": true,
   "data": {
+    "contentType": "movie",
     "contentId": "movie-uuid",
+    "addedAt": "2025-01-15T10:30:00.000Z"
+  }
+}</code></pre>
+                    <p>For series:</p>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "contentType": "series",
+    "seriesId": "series-uuid",
+    "addedAt": "2025-01-15T10:30:00.000Z"
+  }
+}</code></pre>
+                    <p>For episodes:</p>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "contentType": "episode",
+    "episodeId": "episode-uuid",
     "addedAt": "2025-01-15T10:30:00.000Z"
   }
 }</code></pre>
@@ -1216,10 +1285,51 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/users/me/profiles/:profileId/watch-later/:contentId</span>
+                        <span class="endpoint-path">/api/users/me/profiles/:profileId/watch-later/check</span>
                     </div>
                     <div class="endpoint-description">Check if content is in watch later</div>
                     <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span></p>
+                    <h4>Query Parameters:</h4>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Required</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>contentType</code></td>
+                                <td>string</td>
+                                <td>Yes</td>
+                                <td>Content type: <code>movie</code>, <code>short_film</code>, <code>documentary</code>, <code>bts</code>, <code>reel</code>, <code>series</code>, or <code>episode</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>contentId</code></td>
+                                <td>string</td>
+                                <td>Conditional</td>
+                                <td>Required for movies/short films/documentaries/BTS/reels</td>
+                            </tr>
+                            <tr>
+                                <td><code>seriesId</code></td>
+                                <td>string</td>
+                                <td>Conditional</td>
+                                <td>Required for series</td>
+                            </tr>
+                            <tr>
+                                <td><code>episodeId</code></td>
+                                <td>string</td>
+                                <td>Conditional</td>
+                                <td>Required for episodes</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h4>Example:</h4>
+                    <pre><code class="language-bash">GET /api/users/me/profiles/:profileId/watch-later/check?contentType=movie&contentId=movie-uuid
+GET /api/users/me/profiles/:profileId/watch-later/check?contentType=series&seriesId=series-uuid
+GET /api/users/me/profiles/:profileId/watch-later/check?contentType=episode&episodeId=episode-uuid</code></pre>
                     <h4>Response:</h4>
                     <pre><code class="language-json">{
   "success": true,
@@ -1233,10 +1343,26 @@
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-delete">DELETE</span>
-                        <span class="endpoint-path">/api/users/me/profiles/:profileId/watch-later/:contentId</span>
+                        <span class="endpoint-path">/api/users/me/profiles/:profileId/watch-later</span>
                     </div>
                     <div class="endpoint-description">Remove content from watch later</div>
                     <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span></p>
+                    <h4>Request Body:</h4>
+                    <p>For movies, short films, documentaries, BTS, or reels:</p>
+                    <pre><code class="language-json">{
+  "contentType": "movie",
+  "contentId": "movie-uuid"
+}</code></pre>
+                    <p>For series:</p>
+                    <pre><code class="language-json">{
+  "contentType": "series",
+  "seriesId": "series-uuid"
+}</code></pre>
+                    <p>For episodes:</p>
+                    <pre><code class="language-json">{
+  "contentType": "episode",
+  "episodeId": "episode-uuid"
+}</code></pre>
                     <h4>Response:</h4>
                     <pre><code class="language-json">{
   "success": true,
@@ -1244,6 +1370,344 @@
     "removed": "movie-uuid"
   }
 }</code></pre>
+                </div>
+            </section>
+
+            <!-- Payment Service: Payments & Rentals API -->
+            <section id="payments-api" class="section">
+                <h2>Payments & Rentals API</h2>
+                <p>Handle payment processing for content rentals (movies, series, episodes). Supports RazorPay and Apple Pay gateways.</p>
+                <div class="info-box" style="margin-bottom: 1.5rem;">
+                    <strong>Route Prefix:</strong> All Payment Service routes are prefixed with <code>/api/payments</code>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">GET</span>
+                        <span class="endpoint-path">/api/payments/config</span>
+                    </div>
+                    <div class="endpoint-description">Get payment gateway configuration</div>
+                    <p><strong>Access:</strong> Public (no authentication required)</p>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "razorpay": {
+      "configured": true,
+      "keyId": "rzp_test_xxxxx"
+    },
+    "supportedGateways": ["razorpay", "apple_pay"],
+    "currency": "INR"
+  }
+}</code></pre>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-post">POST</span>
+                        <span class="endpoint-path">/api/payments/create</span>
+                    </div>
+                    <div class="endpoint-description">Create a payment order for renting content</div>
+                    <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span></p>
+                    <h4>Request Body:</h4>
+                    <pre><code class="language-json">{
+  "contentId": "movie-uuid",
+  "contentType": "movie", // "movie" | "series" | "episode"
+  "platform": "web" // optional: "ios" | "android" | "web"
+}</code></pre>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "paymentId": "payment-uuid",
+    "amount": 5000, // in paisa (INR) or cents (USD)
+    "currency": "INR", // or "USD" for Apple Pay
+    "gateway": "razorpay", // or "apple_pay"
+    "gatewayOrderId": "order_xxxxx", // RazorPay order ID (null for Apple Pay)
+    "paymentData": {
+      "orderId": "order_xxxxx",
+      "amount": 5000,
+      "currency": "INR",
+      "keyId": "rzp_test_xxxxx"
+    },
+    "content": {
+      "id": "movie-uuid",
+      "title": "Movie Title",
+      "type": "movie"
+    },
+    "durationHours": 48
+  }
+}</code></pre>
+                    <div class="info-box" style="margin-top: 1rem;">
+                        <strong>Payment Gateway Selection:</strong>
+                        <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
+                            <li><strong>RazorPay:</strong> Used by default for all users (INR currency)</li>
+                            <li><strong>Apple Pay:</strong> Automatically selected for iOS users from USA (USD currency)</li>
+                            <li>For Apple Pay, <code>paymentData.requiresClientSidePayment</code> will be <code>true</code> - you'll need to handle the payment on the client side</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-post">POST</span>
+                        <span class="endpoint-path">/api/payments/verify</span>
+                    </div>
+                    <div class="endpoint-description">Verify and complete payment (frontend callback after payment gateway success)</div>
+                    <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span></p>
+                    <h4>Request Body:</h4>
+                    <p>For RazorPay:</p>
+                    <pre><code class="language-json">{
+  "paymentId": "payment-uuid",
+  "gatewayOrderId": "order_xxxxx",
+  "gatewayPaymentId": "pay_xxxxx",
+  "gatewaySignature": "signature_xxxxx"
+}</code></pre>
+                    <p>For Apple Pay:</p>
+                    <pre><code class="language-json">{
+  "paymentId": "payment-uuid",
+  "gatewayPaymentId": "transaction_id_xxxxx"
+}</code></pre>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "payment": {
+      "id": "payment-uuid",
+      "userId": "user-uuid",
+      "amount": 5000,
+      "currency": "INR",
+      "gateway": "razorpay",
+      "status": "completed",
+      "paidAt": "2025-01-15T10:30:00.000Z"
+    },
+    "rental": {
+      "id": "rental-uuid",
+      "paymentId": "payment-uuid",
+      "userId": "user-uuid",
+      "contentType": "movie",
+      "movieId": "movie-uuid",
+      "rentedAt": "2025-01-15T10:30:00.000Z",
+      "expiresAt": "2025-01-17T10:30:00.000Z",
+      "durationHours": 48
+    },
+    "message": "Payment verified and rental activated"
+  }
+}</code></pre>
+                    <div class="info-box" style="margin-top: 1rem;">
+                        <strong>Note:</strong> This endpoint is idempotent. If the payment is already verified, it returns the existing rental without creating a duplicate.
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">GET</span>
+                        <span class="endpoint-path">/api/payments/rental-status/:contentId</span>
+                    </div>
+                    <div class="endpoint-description">Get rental status for specific content</div>
+                    <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span></p>
+                    <h4>Query Parameters:</h4>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Required</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>type</code></td>
+                                <td>string</td>
+                                <td>No</td>
+                                <td>Content type: <code>movie</code>, <code>series</code>, or <code>episode</code> (default: <code>movie</code>)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h4>Example:</h4>
+                    <pre><code class="language-bash">GET /api/payments/rental-status/movie-uuid?type=movie
+GET /api/payments/rental-status/series-uuid?type=series
+GET /api/payments/rental-status/episode-uuid?type=episode</code></pre>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "contentId": "movie-uuid",
+    "mediaType": "movie",
+    "contentType": "rent", // "free" | "rent" | "subscription"
+    "hasActiveRental": true,
+    "rental": {
+      "id": "rental-uuid",
+      "rentedAt": "2025-01-15T10:30:00.000Z",
+      "expiresAt": "2025-01-17T10:30:00.000Z",
+      "isExpired": false,
+      "timeRemaining": 172800 // seconds remaining
+    }
+  }
+}</code></pre>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">GET</span>
+                        <span class="endpoint-path">/api/payments/rentals/active</span>
+                    </div>
+                    <div class="endpoint-description">Get user's active rentals</div>
+                    <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span></p>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "rentals": [
+      {
+        "id": "rental-uuid",
+        "paymentId": "payment-uuid",
+        "userId": "user-uuid",
+        "contentType": "movie",
+        "movieId": "movie-uuid",
+        "movie": {
+          "id": "movie-uuid",
+          "title": "Movie Title",
+          "slug": "movie-title"
+        },
+        "rentedAt": "2025-01-15T10:30:00.000Z",
+        "expiresAt": "2025-01-17T10:30:00.000Z",
+        "durationHours": 48,
+        "isExpired": false,
+        "timeRemaining": 172800
+      },
+      {
+        "id": "rental-uuid-2",
+        "contentType": "series",
+        "seriesId": "series-uuid",
+        "series": {
+          "id": "series-uuid",
+          "title": "Series Title",
+          "slug": "series-title"
+        },
+        "rentedAt": "2025-01-14T08:00:00.000Z",
+        "expiresAt": "2025-01-16T08:00:00.000Z",
+        "isExpired": false
+      }
+    ],
+    "count": 2
+  }
+}</code></pre>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">GET</span>
+                        <span class="endpoint-path">/api/payments/history</span>
+                    </div>
+                    <div class="endpoint-description">Get user's payment history</div>
+                    <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span></p>
+                    <h4>Query Parameters:</h4>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Required</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>page</code></td>
+                                <td>number</td>
+                                <td>No</td>
+                                <td>Page number (default: 1)</td>
+                            </tr>
+                            <tr>
+                                <td><code>limit</code></td>
+                                <td>number</td>
+                                <td>No</td>
+                                <td>Items per page (default: 20, max: 100)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "payments": [
+      {
+        "id": "payment-uuid",
+        "userId": "user-uuid",
+        "amount": 5000,
+        "currency": "INR",
+        "gateway": "razorpay",
+        "status": "completed",
+        "contentType": "movie",
+        "movieId": "movie-uuid",
+        "movie": {
+          "id": "movie-uuid",
+          "title": "Movie Title",
+          "slug": "movie-title"
+        },
+        "createdAt": "2025-01-15T10:30:00.000Z",
+        "paidAt": "2025-01-15T10:30:05.000Z"
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 20,
+      "total": 50,
+      "totalPages": 3
+    }
+  }
+}</code></pre>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">GET</span>
+                        <span class="endpoint-path">/api/payments/:paymentId</span>
+                    </div>
+                    <div class="endpoint-description">Get payment status and details</div>
+                    <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span></p>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "payment": {
+      "id": "payment-uuid",
+      "userId": "user-uuid",
+      "amount": 5000,
+      "currency": "INR",
+      "gateway": "razorpay",
+      "gatewayOrderId": "order_xxxxx",
+      "gatewayPaymentId": "pay_xxxxx",
+      "status": "completed", // "pending" | "completed" | "failed"
+      "contentType": "movie",
+      "movieId": "movie-uuid",
+      "createdAt": "2025-01-15T10:30:00.000Z",
+      "paidAt": "2025-01-15T10:30:05.000Z"
+    },
+    "rental": {
+      "id": "rental-uuid",
+      "paymentId": "payment-uuid",
+      "expiresAt": "2025-01-17T10:30:00.000Z"
+    }
+  }
+}</code></pre>
+                </div>
+
+                <div class="info-box warning" style="margin-top: 2rem;">
+                    <strong>Payment Flow:</strong>
+                    <ol style="margin-top: 0.5rem; margin-left: 1.5rem;">
+                        <li>Call <code>POST /api/payments/create</code> to create a payment order</li>
+                        <li>Use the returned <code>paymentData</code> to initiate payment with the gateway (RazorPay or Apple Pay)</li>
+                        <li>After successful payment on the gateway, call <code>POST /api/payments/verify</code> with the payment details</li>
+                        <li>The verify endpoint creates a rental record and grants access to the content</li>
+                        <li>Use <code>GET /api/payments/rental-status/:contentId</code> to check if content is accessible</li>
+                    </ol>
+                </div>
+
+                <div class="info-box" style="margin-top: 1rem;">
+                    <strong>Rental Duration:</strong> Rentals typically last 48 hours (configurable per content). There's a grace period after expiration during which access may still be granted. Use the <code>rental-status</code> endpoint to check current access status.
                 </div>
             </section>
 
@@ -1545,6 +2009,436 @@
     }
   }
 }</code></pre>
+                </div>
+            </section>
+
+            <!-- Content Service: Reels API -->
+            <section id="reels-api" class="section">
+                <h2>Reels API</h2>
+                <p>Public catalog endpoints for browsing and viewing reel content (short-form vertical videos). No authentication required.</p>
+                <div class="info-box" style="margin-bottom: 1.5rem;">
+                    <strong>Route Prefix:</strong> All Content Service routes are prefixed with <code>/api/content/</code>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">GET</span>
+                        <span class="endpoint-path">/api/content/reels</span>
+                    </div>
+                    <div class="endpoint-description">Get paginated list of reels with filters</div>
+                    <h4>Query Parameters:</h4>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Required</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>page</code></td>
+                                <td>number</td>
+                                <td>No</td>
+                                <td>Page number (default: 1)</td>
+                            </tr>
+                            <tr>
+                                <td><code>limit</code></td>
+                                <td>number</td>
+                                <td>No</td>
+                                <td>Items per page (default: 20, max: 100)</td>
+                            </tr>
+                            <tr>
+                                <td><code>status</code></td>
+                                <td>string</td>
+                                <td>No</td>
+                                <td>Filter by status: <code>draft</code>, <code>published</code>, <code>archived</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>search</code></td>
+                                <td>string</td>
+                                <td>No</td>
+                                <td>Search reels by title or description</td>
+                            </tr>
+                            <tr>
+                                <td><code>contentType</code></td>
+                                <td>string</td>
+                                <td>No</td>
+                                <td>Filter by content type: <code>free</code>, <code>rent</code>, <code>subscription</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>minYear</code></td>
+                                <td>number</td>
+                                <td>No</td>
+                                <td>Filter by minimum release year</td>
+                            </tr>
+                            <tr>
+                                <td><code>maxYear</code></td>
+                                <td>number</td>
+                                <td>No</td>
+                                <td>Filter by maximum release year</td>
+                            </tr>
+                            <tr>
+                                <td><code>languageId</code></td>
+                                <td>string (UUID)</td>
+                                <td>No</td>
+                                <td>Filter by language ID</td>
+                            </tr>
+                            <tr>
+                                <td><code>contentRatingId</code></td>
+                                <td>string (UUID)</td>
+                                <td>No</td>
+                                <td>Filter by content rating ID</td>
+                            </tr>
+                            <tr>
+                                <td><code>sortField</code></td>
+                                <td>string</td>
+                                <td>No</td>
+                                <td>Sort field: <code>createdAt</code>, <code>title</code>, <code>year</code>, etc.</td>
+                            </tr>
+                            <tr>
+                                <td><code>sortDirection</code></td>
+                                <td>string</td>
+                                <td>No</td>
+                                <td>Sort direction: <code>asc</code> or <code>desc</code> (default: <code>desc</code>)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h4>Example:</h4>
+                    <pre><code class="language-bash">GET /api/content/reels?page=1&limit=12&status=published</code></pre>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "data": [
+      {
+        "id": "reel-uuid",
+        "title": "Reel Title",
+        "status": "published",
+        "year": 2024,
+        "duration": 60,
+        "language": "English",
+        "rating": "PG-13",
+        "thumbnailUrl": "https://videodelivery.net/.../thumbnails/thumbnail.jpg",
+        "playbackUrl": "https://videodelivery.net/.../manifest/video.m3u8",
+        "createdAt": "2025-01-01T00:00:00.000Z"
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 12,
+      "total": 50,
+      "totalPages": 5
+    }
+  }
+}</code></pre>
+                    <div class="info-box">
+                        <strong>Note:</strong> Reels are short-form vertical videos optimized for mobile viewing. The response includes <code>thumbnailUrl</code> and <code>playbackUrl</code> from the associated stream video for easy playback integration.
+                    </div>
+                </div>
+            </section>
+
+            <!-- Content Service: Streaming API -->
+            <section id="stream-api" class="section">
+                <h2>Streaming API</h2>
+                <p>Manage streaming sessions for video playback. Supports device-based slot management (one stream per device category: mobile, tablet, TV, web).</p>
+                <div class="info-box" style="margin-bottom: 1.5rem;">
+                    <strong>Route Prefix:</strong> Streaming routes are mounted at <code>/api/stream</code> (not under <code>/api/content/</code>)
+                </div>
+                <div class="info-box warning" style="margin-bottom: 1.5rem;">
+                    <strong>Redis Required:</strong> Streaming functionality requires Redis to be available. If Redis is unavailable, streaming endpoints will return an error.
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">GET</span>
+                        <span class="endpoint-path">/api/stream/can-start</span>
+                    </div>
+                    <div class="endpoint-description">Check if user can start a new stream</div>
+                    <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span></p>
+                    <h4>Query Parameters:</h4>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Required</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>deviceType</code></td>
+                                <td>string</td>
+                                <td>No</td>
+                                <td>Check if a specific device type category has an available slot</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "canStart": true,
+    "deviceSlots": {
+      "used": ["mobile", "tv"],
+      "available": ["tablet", "web"],
+      "total": 4
+    },
+    "canStartSpecific": true,
+    "specificCategory": "mobile"
+  }
+}</code></pre>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-post">POST</span>
+                        <span class="endpoint-path">/api/stream/start</span>
+                    </div>
+                    <div class="endpoint-description">Start a new streaming session</div>
+                    <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span></p>
+                    <h4>Request Body:</h4>
+                    <pre><code class="language-json">{
+  "contentId": "movie-uuid",
+  "profileId": "profile-uuid", // optional
+  "deviceId": "device-uuid", // required - unique device identifier
+  "deviceType": "mobile", // required - "mobile" | "tablet" | "tv" | "web" | "other"
+  "deviceName": "iPhone 15 Pro", // required - human-readable device name
+  "deviceModel": "iPhone15,2", // optional
+  "appVersion": "1.0.0" // optional
+}</code></pre>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "sessionToken": "session-token-xxxxx",
+    "streamUrl": "https://stream.vaki-ott.com/content/movie-uuid/playlist.m3u8",
+    "expiresAt": "2025-01-15T11:00:00.000Z",
+    "heartbeatInterval": 30,
+    "deviceCategory": "mobile",
+    "activeCategories": ["mobile"],
+    "availableCategories": ["tablet", "tv", "web"],
+    "rental": {
+      "rentalId": "rental-uuid",
+      "expiresAt": "2025-01-17T10:30:00.000Z",
+      "gracePeriodEndsAt": "2025-01-17T11:30:00.000Z",
+      "isInGracePeriod": false
+    }
+  }
+}</code></pre>
+                    <div class="info-box" style="margin-top: 1rem;">
+                        <strong>Device Categories:</strong> The system limits one active stream per device category (mobile, tablet, TV, web). If you try to start a stream on a device category that's already in use, you'll receive a <code>409 Conflict</code> error with details about the blocking session.
+                    </div>
+                    <div class="info-box" style="margin-top: 1rem;">
+                        <strong>Rental Access:</strong> If the content requires a rental and the user doesn't have an active rental, the endpoint returns <code>403 Forbidden</code> with rental information. You should redirect the user to the payment flow.
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-post">POST</span>
+                        <span class="endpoint-path">/api/stream/heartbeat</span>
+                    </div>
+                    <div class="endpoint-description">Send heartbeat to keep session alive (must be called every 30 seconds during playback)</div>
+                    <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span></p>
+                    <h4>Request Body:</h4>
+                    <pre><code class="language-json">{
+  "sessionToken": "session-token-xxxxx",
+  "position": 120, // optional - current playback position in seconds
+  "quality": "1080p", // optional - current video quality
+  "bufferHealth": 10 // optional - buffer health in seconds
+}</code></pre>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "valid": true,
+    "nextHeartbeat": 30
+  }
+}</code></pre>
+                    <div class="info-box" style="margin-top: 1rem;">
+                        <strong>Heartbeat Requirements:</strong> Send heartbeat every 30 seconds during active playback. If heartbeat is not received for 90 seconds, the session expires. Rate limiting applies - too many requests will return <code>429 Too Many Requests</code>.
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-post">POST</span>
+                        <span class="endpoint-path">/api/stream/stop</span>
+                    </div>
+                    <div class="endpoint-description">Stop a streaming session</div>
+                    <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span></p>
+                    <h4>Request Body:</h4>
+                    <pre><code class="language-json">{
+  "sessionToken": "session-token-xxxxx",
+  "position": 3600, // optional - final playback position in seconds
+  "watchDuration": 3600 // optional - total watch time in seconds
+}</code></pre>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "watchDuration": 3600,
+    "maxPosition": 3600,
+    "message": "Stream stopped successfully"
+  }
+}</code></pre>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">GET</span>
+                        <span class="endpoint-path">/api/stream/active</span>
+                    </div>
+                    <div class="endpoint-description">Get all active streaming sessions for the user</div>
+                    <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span></p>
+                    <p><strong>Optional Header:</strong> <span class="inline-code">x-device-id: &lt;device-id&gt;</span> - Marks sessions from this device as current</p>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "sessions": [
+      {
+        "sessionToken": "session-token-xxxxx",
+        "deviceName": "iPhone 15 Pro",
+        "deviceType": "mobile",
+        "deviceCategory": "mobile",
+        "contentId": "movie-uuid",
+        "contentTitle": "Movie Title",
+        "startedAt": "2025-01-15T10:30:00.000Z",
+        "isCurrentDevice": true
+      }
+    ],
+    "deviceSlots": {
+      "used": ["mobile", "tv"],
+      "available": ["tablet", "web"],
+      "total": 4
+    }
+  }
+}</code></pre>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-post">POST</span>
+                        <span class="endpoint-path">/api/stream/force-logout</span>
+                    </div>
+                    <div class="endpoint-description">Force logout other streaming sessions</div>
+                    <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span></p>
+                    <h4>Request Body (one of the following):</h4>
+                    <p>Terminate specific sessions:</p>
+                    <pre><code class="language-json">{
+  "sessionTokens": ["session-token-xxxxx", "session-token-yyyyy"]
+}</code></pre>
+                    <p>Keep only sessions from a specific device:</p>
+                    <pre><code class="language-json">{
+  "keepDeviceId": "device-uuid"
+}</code></pre>
+                    <p>Logout all sessions:</p>
+                    <pre><code class="language-json">{
+  "logoutAll": true
+}</code></pre>
+                    <p>Logout specific device category:</p>
+                    <pre><code class="language-json">{
+  "deviceCategory": "mobile"
+}</code></pre>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "message": "Sessions terminated successfully",
+  "data": {
+    "terminatedCount": 2,
+    "deviceSlots": {
+      "used": ["web"],
+      "available": ["mobile", "tablet", "tv"]
+    }
+  }
+}</code></pre>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">GET</span>
+                        <span class="endpoint-path">/api/stream/history</span>
+                    </div>
+                    <div class="endpoint-description">Get streaming history for analytics</div>
+                    <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span></p>
+                    <h4>Query Parameters:</h4>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Required</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>page</code></td>
+                                <td>number</td>
+                                <td>No</td>
+                                <td>Page number (default: 1)</td>
+                            </tr>
+                            <tr>
+                                <td><code>limit</code></td>
+                                <td>number</td>
+                                <td>No</td>
+                                <td>Items per page (default: 20, max: 100)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "data": [
+      {
+        "id": "session-uuid",
+        "contentId": "movie-uuid",
+        "contentTitle": "Movie Title",
+        "contentType": "movie",
+        "deviceName": "iPhone 15 Pro",
+        "deviceType": "mobile",
+        "startedAt": "2025-01-15T10:30:00.000Z",
+        "endedAt": "2025-01-15T11:30:00.000Z",
+        "watchDuration": 3600,
+        "maxPosition": 3600,
+        "endReason": "user_stopped"
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 20,
+      "total": 50,
+      "totalPages": 3
+    }
+  }
+}</code></pre>
+                </div>
+
+                <div class="info-box" style="margin-top: 2rem;">
+                    <strong>Streaming Flow:</strong>
+                    <ol style="margin-top: 0.5rem; margin-left: 1.5rem;">
+                        <li>Check if user can start a stream: <code>GET /api/stream/can-start</code></li>
+                        <li>Start streaming session: <code>POST /api/stream/start</code> - returns <code>sessionToken</code> and <code>streamUrl</code></li>
+                        <li>Begin playback using the <code>streamUrl</code></li>
+                        <li>Send heartbeat every 30 seconds: <code>POST /api/stream/heartbeat</code> with <code>sessionToken</code></li>
+                        <li>When playback stops: <code>POST /api/stream/stop</code> with final position</li>
+                    </ol>
+                </div>
+
+                <div class="info-box" style="margin-top: 1rem;">
+                    <strong>Session Management:</strong>
+                    <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
+                        <li>Sessions expire after 90 seconds without heartbeat</li>
+                        <li>One stream per device category (mobile, tablet, TV, web)</li>
+                        <li>Use <code>GET /api/stream/active</code> to see all active sessions</li>
+                        <li>Use <code>POST /api/stream/force-logout</code> to terminate other sessions if needed</li>
+                        <li>Same device can reconnect - old session is automatically replaced</li>
+                    </ul>
                 </div>
             </section>
 
@@ -2689,6 +3583,14 @@ async function getMovies(page = 1, limit = 20) {
   return response.json();
 }
 
+// Get reels (public endpoint)
+async function getReels(page = 1, limit = 20) {
+  const response = await fetch(
+    `${API_BASE_URL}/api/content/reels?page=${page}&limit=${limit}&status=published`
+  );
+  return response.json();
+}
+
 // Get sections for a context and platform
 async function getSections(context = 'home', platform = 'web') {
   const response = await fetch(
@@ -2756,32 +3658,315 @@ async function getWatchLater(profileId, page = 1, limit = 20) {
   return response.json();
 }
 
-async function addToWatchLater(profileId, contentId) {
+// Add movie/short film/documentary/BTS/reel to watch later
+async function addMovieToWatchLater(profileId, contentType, contentId) {
   const response = await authenticatedFetch(
     `/api/users/me/profiles/${profileId}/watch-later`,
     {
       method: 'POST',
-      body: JSON.stringify({ contentId }),
+      body: JSON.stringify({ contentType, contentId }),
     }
   );
   return response.json();
 }
 
-async function removeFromWatchLater(profileId, contentId) {
+// Add series to watch later
+async function addSeriesToWatchLater(profileId, seriesId) {
   const response = await authenticatedFetch(
-    `/api/users/me/profiles/${profileId}/watch-later/${contentId}`,
+    `/api/users/me/profiles/${profileId}/watch-later`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ contentType: 'series', seriesId }),
+    }
+  );
+  return response.json();
+}
+
+// Add episode to watch later
+async function addEpisodeToWatchLater(profileId, episodeId) {
+  const response = await authenticatedFetch(
+    `/api/users/me/profiles/${profileId}/watch-later`,
+    {
+      method: 'POST',
+      body: JSON.stringify({ contentType: 'episode', episodeId }),
+    }
+  );
+  return response.json();
+}
+
+// Remove content from watch later
+async function removeFromWatchLater(profileId, contentType, contentId, seriesId, episodeId) {
+  const body = { contentType };
+  if (contentId) body.contentId = contentId;
+  if (seriesId) body.seriesId = seriesId;
+  if (episodeId) body.episodeId = episodeId;
+  
+  const response = await authenticatedFetch(
+    `/api/users/me/profiles/${profileId}/watch-later`,
     {
       method: 'DELETE',
+      body: JSON.stringify(body),
     }
   );
   return response.json();
 }
 
-async function checkWatchLater(profileId, contentId) {
+// Check if content is in watch later
+async function checkWatchLater(profileId, contentType, contentId, seriesId, episodeId) {
+  const params = new URLSearchParams({ contentType });
+  if (contentId) params.append('contentId', contentId);
+  if (seriesId) params.append('seriesId', seriesId);
+  if (episodeId) params.append('episodeId', episodeId);
+  
   const response = await authenticatedFetch(
-    `/api/users/me/profiles/${profileId}/watch-later/${contentId}`
+    `/api/users/me/profiles/${profileId}/watch-later/check?${params.toString()}`
   );
   return response.json();
+}
+
+// Payment functions
+async function getPaymentConfig() {
+  const response = await fetch(`${API_BASE_URL}/api/payments/config`);
+  return response.json();
+}
+
+async function createPayment(contentId, contentType = 'movie', platform = 'web') {
+  const response = await authenticatedFetch('/api/payments/create', {
+    method: 'POST',
+    body: JSON.stringify({ contentId, contentType, platform }),
+  });
+  return response.json();
+}
+
+async function verifyPayment(paymentId, gatewayData) {
+  const response = await authenticatedFetch('/api/payments/verify', {
+    method: 'POST',
+    body: JSON.stringify({
+      paymentId,
+      gatewayOrderId: gatewayData.orderId,
+      gatewayPaymentId: gatewayData.paymentId,
+      gatewaySignature: gatewayData.signature,
+    }),
+  });
+  return response.json();
+}
+
+async function getRentalStatus(contentId, type = 'movie') {
+  const response = await authenticatedFetch(
+    `/api/payments/rental-status/${contentId}?type=${type}`
+  );
+  return response.json();
+}
+
+async function getActiveRentals() {
+  const response = await authenticatedFetch('/api/payments/rentals/active');
+  return response.json();
+}
+
+async function getPaymentHistory(page = 1, limit = 20) {
+  const response = await authenticatedFetch(
+    `/api/payments/history?page=${page}&limit=${limit}`
+  );
+  return response.json();
+}
+
+async function getPaymentStatus(paymentId) {
+  const response = await authenticatedFetch(`/api/payments/${paymentId}`);
+  return response.json();
+}
+
+// Example: Complete payment flow with RazorPay
+async function rentContent(contentId, contentType = 'movie') {
+  try {
+    // Step 1: Create payment order
+    const createResponse = await createPayment(contentId, contentType);
+    if (!createResponse.success) {
+      throw new Error(createResponse.error || 'Failed to create payment');
+    }
+
+    const { paymentId, paymentData, gateway } = createResponse.data;
+
+    if (gateway === 'razorpay') {
+      // Step 2: Initialize RazorPay checkout
+      const options = {
+        key: paymentData.keyId,
+        amount: paymentData.amount,
+        currency: paymentData.currency,
+        order_id: paymentData.orderId,
+        name: 'Vaki OTT',
+        description: 'Content Rental',
+        handler: async function(response) {
+          // Step 3: Verify payment after RazorPay success
+          const verifyResponse = await verifyPayment(paymentId, {
+            orderId: response.razorpay_order_id,
+            paymentId: response.razorpay_payment_id,
+            signature: response.razorpay_signature,
+          });
+          
+          if (verifyResponse.success) {
+            console.log('Payment verified, rental activated!', verifyResponse.data);
+            return verifyResponse;
+          } else {
+            throw new Error(verifyResponse.error || 'Payment verification failed');
+          }
+        },
+        prefill: {
+          // Pre-fill user details if available
+        },
+        theme: {
+          color: '#635bff'
+        }
+      };
+      
+      const razorpay = new Razorpay(options);
+      razorpay.open();
+      
+      return { paymentId, paymentData };
+    } else if (gateway === 'apple_pay') {
+      // Handle Apple Pay flow
+      // This requires Apple Pay JS SDK integration
+      return { paymentId, requiresClientSidePayment: true };
+    }
+  } catch (error) {
+    console.error('Payment error:', error);
+    throw error;
+  }
+}
+
+// Streaming functions
+async function canStartStream(deviceType) {
+  const params = deviceType ? `?deviceType=${deviceType}` : '';
+  const response = await authenticatedFetch(`/api/stream/can-start${params}`);
+  return response.json();
+}
+
+async function startStream(contentId, deviceInfo, profileId) {
+  const response = await authenticatedFetch('/api/stream/start', {
+    method: 'POST',
+    body: JSON.stringify({
+      contentId,
+      profileId,
+      deviceId: deviceInfo.deviceId,
+      deviceType: deviceInfo.deviceType,
+      deviceName: deviceInfo.deviceName,
+      deviceModel: deviceInfo.deviceModel,
+      appVersion: deviceInfo.appVersion,
+    }),
+  });
+  return response.json();
+}
+
+async function sendHeartbeat(sessionToken, position, quality, bufferHealth) {
+  const response = await authenticatedFetch('/api/stream/heartbeat', {
+    method: 'POST',
+    body: JSON.stringify({
+      sessionToken,
+      position,
+      quality,
+      bufferHealth,
+    }),
+  });
+  return response.json();
+}
+
+async function stopStream(sessionToken, position, watchDuration) {
+  const response = await authenticatedFetch('/api/stream/stop', {
+    method: 'POST',
+    body: JSON.stringify({
+      sessionToken,
+      position,
+      watchDuration,
+    }),
+  });
+  return response.json();
+}
+
+async function getActiveSessions(deviceId) {
+  const headers = deviceId ? { 'x-device-id': deviceId } : {};
+  const response = await authenticatedFetch('/api/stream/active', {
+    headers,
+  });
+  return response.json();
+}
+
+async function forceLogoutSessions(options) {
+  const response = await authenticatedFetch('/api/stream/force-logout', {
+    method: 'POST',
+    body: JSON.stringify(options),
+  });
+  return response.json();
+}
+
+async function getStreamHistory(page = 1, limit = 20) {
+  const response = await authenticatedFetch(
+    `/api/stream/history?page=${page}&limit=${limit}`
+  );
+  return response.json();
+}
+
+// Example: Complete streaming flow
+let heartbeatInterval = null;
+let currentSessionToken = null;
+
+async function playContent(contentId, deviceInfo, profileId) {
+  try {
+    // Step 1: Check if can start stream
+    const canStart = await canStartStream(deviceInfo.deviceType);
+    if (!canStart.data.canStart) {
+      throw new Error('Cannot start stream - device slot taken');
+    }
+
+    // Step 2: Start streaming session
+    const startResponse = await startStream(contentId, deviceInfo, profileId);
+    if (!startResponse.success) {
+      if (startResponse.error === 'RENTAL_REQUIRED') {
+        // Redirect to payment flow
+        throw new Error('Rental required');
+      }
+      throw new Error(startResponse.error || 'Failed to start stream');
+    }
+
+    const { sessionToken, streamUrl, heartbeatInterval: interval } = startResponse.data;
+    currentSessionToken = sessionToken;
+
+    // Step 3: Start video player with streamUrl
+    // videoPlayer.src = streamUrl;
+    // videoPlayer.play();
+
+    // Step 4: Start heartbeat interval
+    heartbeatInterval = setInterval(async () => {
+      try {
+        const position = Math.floor(videoPlayer.currentTime || 0);
+        await sendHeartbeat(sessionToken, position);
+      } catch (error) {
+        console.error('Heartbeat failed:', error);
+        // Session might have expired - stop playback
+        if (error.status === 401) {
+          clearInterval(heartbeatInterval);
+          // Handle session expired
+        }
+      }
+    }, interval * 1000);
+
+    return { sessionToken, streamUrl };
+  } catch (error) {
+    console.error('Streaming error:', error);
+    throw error;
+  }
+}
+
+async function stopPlayback() {
+  if (heartbeatInterval) {
+    clearInterval(heartbeatInterval);
+    heartbeatInterval = null;
+  }
+
+  if (currentSessionToken) {
+    const position = Math.floor(videoPlayer.currentTime || 0);
+    const watchDuration = Math.floor(videoPlayer.duration || 0);
+    await stopStream(currentSessionToken, position, watchDuration);
+    currentSessionToken = null;
+  }
 }</code></pre>
             </section>
         </main>
