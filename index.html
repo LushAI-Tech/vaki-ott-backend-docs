@@ -1445,6 +1445,7 @@ GET /api/users/me/profiles/:profileId/watch-later/check?contentType=episode&epis
                             <li><strong>Apple Pay:</strong> Automatically selected for iOS users from USA (USD currency)</li>
                             <li>For Apple Pay, <code>paymentData.requiresClientSidePayment</code> will be <code>true</code> - you'll need to handle the payment on the client side</li>
                         </ul>
+                        <p style="margin-top: 0.5rem;"><strong>Note:</strong> RazorPay receipt format is <code>r_&lt;payment-id&gt;</code> (max 40 characters as per RazorPay requirements).</p>
                     </div>
                 </div>
 
@@ -3164,16 +3165,19 @@ GET /api/content/references/directors/director-uuid?includeMovies=false</code></
         "title": "Movie Title",
         "slug": "movie-title",
         "description": "Movie description",
-        "year": 2024,
-        "duration": 120,
-        "status": "published",
-        "createdAt": "2025-01-01T00:00:00.000Z"
+        "mediaType": "movie",
+        "contentRating": {
+          "id": "rating-uuid",
+          "name": "PG-13"
+        },
+        "posterUrl": "https://cdn.example.com/movies/movie-uuid/poster.jpg",
+        "backdropUrl": "https://cdn.example.com/movies/movie-uuid/backdrop.jpg"
       }
     ]
   }
 }</code></pre>
                     <div class="info-box">
-                        <strong>Note:</strong> Movies are included by default. The <code>movies</code> array contains all movies directed by this director, ordered by creation date (newest first). Set <code>includeMovies=false</code> to exclude movies from the response.
+                        <strong>Note:</strong> Movies are included by default. The <code>movies</code> array contains all movies directed by this director, ordered by creation date (newest first). Each movie includes only essential fields: <code>id</code>, <code>title</code>, <code>slug</code>, <code>description</code>, <code>mediaType</code>, <code>contentRating</code>, <code>posterUrl</code>, and <code>backdropUrl</code>. Set <code>includeMovies=false</code> to exclude movies from the response.
                     </div>
                 </div>
 
@@ -3266,16 +3270,19 @@ GET /api/content/references/actors/actor-uuid?includeMovies=false</code></pre>
         "title": "Movie Title",
         "slug": "movie-title",
         "description": "Movie description",
-        "year": 2024,
-        "duration": 120,
-        "status": "published",
-        "createdAt": "2025-01-01T00:00:00.000Z"
+        "mediaType": "movie",
+        "contentRating": {
+          "id": "rating-uuid",
+          "name": "PG-13"
+        },
+        "posterUrl": "https://cdn.example.com/movies/movie-uuid/poster.jpg",
+        "backdropUrl": "https://cdn.example.com/movies/movie-uuid/backdrop.jpg"
       }
     ]
   }
 }</code></pre>
                     <div class="info-box">
-                        <strong>Note:</strong> Movies are included by default. The <code>movies</code> array contains all movies featuring this actor, ordered by creation date (newest first). Set <code>includeMovies=false</code> to exclude movies from the response.
+                        <strong>Note:</strong> Movies are included by default. The <code>movies</code> array contains all movies featuring this actor, ordered by creation date (newest first). Each movie includes only essential fields: <code>id</code>, <code>title</code>, <code>slug</code>, <code>description</code>, <code>mediaType</code>, <code>contentRating</code>, <code>posterUrl</code>, and <code>backdropUrl</code>. Set <code>includeMovies=false</code> to exclude movies from the response.
                     </div>
                 </div>
 
@@ -3366,16 +3373,19 @@ GET /api/content/references/producers/producer-uuid?includeMovies=false</code></
         "title": "Movie Title",
         "slug": "movie-title",
         "description": "Movie description",
-        "year": 2024,
-        "duration": 120,
-        "status": "published",
-        "createdAt": "2025-01-01T00:00:00.000Z"
+        "mediaType": "movie",
+        "contentRating": {
+          "id": "rating-uuid",
+          "name": "PG-13"
+        },
+        "posterUrl": "https://cdn.example.com/movies/movie-uuid/poster.jpg",
+        "backdropUrl": "https://cdn.example.com/movies/movie-uuid/backdrop.jpg"
       }
     ]
   }
 }</code></pre>
                     <div class="info-box">
-                        <strong>Note:</strong> Movies are included by default. The <code>movies</code> array contains all movies produced by this producer, ordered by creation date (newest first). Set <code>includeMovies=false</code> to exclude movies from the response.
+                        <strong>Note:</strong> Movies are included by default. The <code>movies</code> array contains all movies produced by this producer, ordered by creation date (newest first). Each movie includes only essential fields: <code>id</code>, <code>title</code>, <code>slug</code>, <code>description</code>, <code>mediaType</code>, <code>contentRating</code>, <code>posterUrl</code>, and <code>backdropUrl</code>. Set <code>includeMovies=false</code> to exclude movies from the response.
                     </div>
                 </div>
             </section>
