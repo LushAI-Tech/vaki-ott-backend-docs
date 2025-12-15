@@ -9,7 +9,7 @@
         * {
             margin: 0;
             padding: 0;
-            box-sizing: border-box;
+            box-sizing: border-box;         
         }
 
         :root {
@@ -1384,6 +1384,80 @@ GET /api/users/me/profiles/:profileId/watch-later/check?contentType=episode&epis
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
+                        <span class="endpoint-path">/api/payments/pricing/:contentType/:contentId</span>
+                    </div>
+                    <div class="endpoint-description">Get available rental pricing tiers for content (movie, series, or episode)</div>
+                    <p><strong>Access:</strong> Public (no authentication required)</p>
+                    <h4>Path Parameters:</h4>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Required</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>contentType</code></td>
+                                <td>string</td>
+                                <td>Yes</td>
+                                <td>Content type: <code>movie</code>, <code>series</code>, or <code>episode</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>contentId</code></td>
+                                <td>string</td>
+                                <td>Yes</td>
+                                <td>UUID of the content (movie, series, or episode)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h4>Example:</h4>
+                    <pre><code class="language-bash">GET /api/payments/pricing/movie/c6bd0765-306d-43be-ade3-51e35389d207
+GET /api/payments/pricing/series/series-uuid
+GET /api/payments/pricing/episode/episode-uuid</code></pre>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "pricing": [
+      {
+        "durationHours": 24,
+        "price": 149,
+        "currency": "INR"
+      },
+      {
+        "durationHours": 36,
+        "price": 199,
+        "currency": "INR"
+      },
+      {
+        "durationHours": 72,
+        "price": 299,
+        "currency": "INR"
+      },
+      {
+        "durationHours": 96,
+        "price": 399,
+        "currency": "INR"
+      },
+      {
+        "durationHours": 168,
+        "price": 499,
+        "currency": "INR"
+      }
+    ]
+  }
+}</code></pre>
+                    <div class="info-box">
+                        <strong>Note:</strong> Returns all available rental price tiers for the specified content, sorted by duration (shortest to longest). Prices are in paisa (INR * 100) or cents (USD * 100). Only tiers that are configured for the content are returned. Use this endpoint to display pricing options to users before creating a payment.
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">GET</span>
                         <span class="endpoint-path">/api/payments/config</span>
                     </div>
                     <div class="endpoint-description">Get payment gateway configuration</div>
@@ -1413,8 +1487,46 @@ GET /api/users/me/profiles/:profileId/watch-later/check?contentType=episode&epis
                     <pre><code class="language-json">{
   "contentId": "movie-uuid",
   "contentType": "movie", // "movie" | "series" | "episode"
+  "durationHours": 24, // optional: 24, 36, 72, 96, or 168 (defaults to 24)
   "platform": "web" // optional: "ios" | "android" | "web"
 }</code></pre>
+                    <h4>Request Body Parameters:</h4>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Required</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>contentId</code></td>
+                                <td>string</td>
+                                <td>Yes</td>
+                                <td>UUID of the content to rent</td>
+                            </tr>
+                            <tr>
+                                <td><code>contentType</code></td>
+                                <td>string</td>
+                                <td>Yes</td>
+                                <td>Content type: <code>movie</code>, <code>series</code>, or <code>episode</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>durationHours</code></td>
+                                <td>number</td>
+                                <td>No</td>
+                                <td>Rental duration in hours. Must be one of: <code>24</code>, <code>36</code>, <code>72</code>, <code>96</code>, <code>168</code>. Defaults to <code>24</code> if not specified.</td>
+                            </tr>
+                            <tr>
+                                <td><code>platform</code></td>
+                                <td>string</td>
+                                <td>No</td>
+                                <td>Platform: <code>web</code>, <code>ios</code>, or <code>android</code>. Used for gateway selection (Apple Pay for iOS users from USA).</td>
+                            </tr>
+                        </tbody>
+                    </table>
                     <h4>Response:</h4>
                     <pre><code class="language-json">{
   "success": true,
@@ -1812,20 +1924,27 @@ GET /api/payments/rental-status/episode-uuid?type=episode</code></pre>
     "slug": "movie-title",
     "description": "Movie description",
     "shortDescription": "Short description",
-    "year": 2024,
-    "duration": 120,
-    "releaseDate": "2024-01-15",
+    "year": 2025,
+    "duration": 116,
+    "releaseDate": "2025-11-12",
+    "contentType": "rent",
+    "rentalPrice24h": 149,
+    "rentalPrice36h": 199,
+    "rentalPrice72h": null,
+    "rentalPrice96h": null,
+    "rentalPrice168h": null,
+    "rentalAvailable": true,
     "status": "published",
-    "contentType": "free",
-    "isReleased": true,
     "language": {
       "id": "language-uuid",
-      "name": "English",
-      "code": "en"
+      "name": "Mizo",
+      "code": "lus"
     },
     "rating": {
       "id": "rating-uuid",
-      "name": "PG-13"
+      "name": "PG-13",
+      "description": "Some material may not be suitable for children...",
+      "minAge": 13
     },
     "genres": [
       {
@@ -1839,15 +1958,16 @@ GET /api/payments/rental-status/episode-uuid?type=episode</code></pre>
         "id": "director-uuid",
         "name": "Director Name",
         "slug": "director-name",
+        "role": "director",
         "photo": "https://cdn.example.com/directors/director-uuid.jpg"
       }
     ],
     "cast": [
       {
-        "id": "cast-uuid",
+        "id": "actor-uuid",
         "actorId": "actor-uuid",
         "actorName": "Actor Name",
-        "characterName": "Character Name",
+        "character": "Character Name",
         "isLead": true,
         "photo": "https://cdn.example.com/actors/actor-uuid.jpg"
       }
@@ -1857,24 +1977,52 @@ GET /api/payments/rental-status/episode-uuid?type=episode</code></pre>
         "id": "producer-uuid",
         "name": "Producer Name",
         "slug": "producer-name",
+        "role": "producer",
+        "productionCompany": "Production Company",
         "photo": "https://cdn.example.com/producers/producer-uuid.jpg"
       }
     ],
-    "media": [
-      {
-        "id": "asset-uuid",
-        "fileType": "poster",
-        "cdnUrl": "https://cdn.example.com/posters/movie-uuid.jpg",
-        "width": 1920,
-        "height": 1080
-      }
-    ],
+    "posterUrl": "https://cdn.example.com/posters/movie-uuid.jpg",
+    "backdropUrl": "https://cdn.example.com/backdrops/movie-uuid.jpg",
+    "media": {
+      "posters": [
+        {
+          "id": "asset-uuid",
+          "fileType": "poster",
+          "fileCategory": "poster",
+          "cdnUrl": "https://cdn.example.com/posters/movie-uuid.jpg",
+          "width": 1200,
+          "height": 1800,
+          "imageResolution": "original",
+          "isPrimary": true
+        }
+      ],
+      "backdrops": [
+        {
+          "id": "asset-uuid",
+          "fileType": "backdrop",
+          "fileCategory": "backdrop",
+          "cdnUrl": "https://cdn.example.com/backdrops/movie-uuid.jpg",
+          "width": 1920,
+          "height": 1080,
+          "imageResolution": "original"
+        }
+      ],
+      "titleImages": [],
+      "videos": [],
+      "trailers": []
+    },
     "trailerVideo": {
       "id": "stream-video-uuid",
-      "movieId": "movie-uuid",
       "streamVideoId": "cloudflare-stream-id",
-      "videoType": "trailer",
-      "playbackUrl": "https://customer-xyz.cloudflarestream.com/...",
+      "movieId": "movie-uuid",
+      "videoType": "Trailer",
+      "thumbnailUrl": "https://customer-xyz.cloudflarestream.com/.../thumbnails/thumbnail.jpg",
+      "previewUrl": "https://customer-xyz.cloudflarestream.com/.../watch",
+      "hlsUrl": "https://customer-xyz.cloudflarestream.com/.../manifest/video.m3u8",
+      "dashUrl": "https://customer-xyz.cloudflarestream.com/.../manifest/video.mpd",
+      "defaultQuality": "auto",
+      "requiresAuth": true,
       "status": "ready"
     },
     "titleImageUrl": "https://cdn.example.com/title-images/movie-uuid.jpg",
@@ -1883,21 +2031,22 @@ GET /api/payments/rental-status/episode-uuid?type=episode</code></pre>
         "id": "recommended-movie-uuid",
         "title": "Recommended Movie",
         "status": "published",
-        "year": 2024,
+        "year": 2025,
         "duration": 120,
-        "language": "English",
+        "language": "Mizo",
         "rating": "PG-13",
         "genres": ["Action", "Thriller"],
         "posterUrl": "https://cdn.example.com/posters/recommended-movie-uuid.jpg",
         "backdropUrl": "https://cdn.example.com/backdrops/recommended-movie-uuid.jpg",
-        "titleImageUrl": "https://cdn.example.com/title-images/recommended-movie-uuid.jpg",
-        "createdAt": "2024-01-01T00:00:00.000Z"
+        "createdAt": "2025-01-01T00:00:00.000Z"
       }
-    ]
+    ],
+    "createdAt": "2025-10-28T06:42:27.276Z",
+    "updatedAt": "2025-11-28T10:11:56.188Z"
   }
 }</code></pre>
                     <div class="info-box">
-                        <strong>Note:</strong> This endpoint includes movie recommendations based on shared genres, directors, and actors. Recommendations are ordered by relevance (more shared genres = higher priority). The response includes photos for directors, cast, and producers, as well as trailer video information if available. Title images are included for hero sections.
+                        <strong>Note:</strong> This endpoint includes movie recommendations based on shared genres, directors, and actors. Recommendations are ordered by relevance (more shared genres = higher priority). The response includes photos for directors, cast, and producers, as well as trailer video information if available. Media assets are grouped by type (posters, backdrops, titleImages, videos, trailers) and only essential fields are returned. Directors and producers include their roles. Use the pricing endpoint to get available rental price tiers.
                     </div>
                 </div>
 
@@ -3740,10 +3889,15 @@ async function getPaymentConfig() {
   return response.json();
 }
 
-async function createPayment(contentId, contentType = 'movie', platform = 'web') {
+async function getContentPricing(contentType, contentId) {
+  const response = await fetch(`${API_BASE_URL}/api/payments/pricing/${contentType}/${contentId}`);
+  return response.json();
+}
+
+async function createPayment(contentId, contentType = 'movie', durationHours = 24, platform = 'web') {
   const response = await authenticatedFetch('/api/payments/create', {
     method: 'POST',
-    body: JSON.stringify({ contentId, contentType, platform }),
+    body: JSON.stringify({ contentId, contentType, durationHours, platform }),
   });
   return response.json();
 }
