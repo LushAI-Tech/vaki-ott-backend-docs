@@ -2290,40 +2290,10 @@ GET /api/payments/rental-status/episode-uuid?type=episode</code></pre>
                                 <td>Filter by status: <code>draft</code>, <code>published</code>, <code>archived</code></td>
                             </tr>
                             <tr>
-                                <td><code>search</code></td>
+                                <td><code>maxContentRating</code></td>
                                 <td>string</td>
                                 <td>No</td>
-                                <td>Search reels by title or description</td>
-                            </tr>
-                            <!-- <tr>
-                                <td><code>contentType</code></td>
-                                <td>string</td>
-                                <td>No</td>
-                                <td>Filter by content type: <code>free</code>, <code>rent</code>, <code>subscription</code></td>
-                            </tr> -->
-                            <tr>
-                                <td><code>minYear</code></td>
-                                <td>number</td>
-                                <td>No</td>
-                                <td>Filter by minimum release year</td>
-                            </tr>
-                            <tr>
-                                <td><code>maxYear</code></td>
-                                <td>number</td>
-                                <td>No</td>
-                                <td>Filter by maximum release year</td>
-                            </tr>
-                            <tr>
-                                <td><code>languageId</code></td>
-                                <td>string (UUID)</td>
-                                <td>No</td>
-                                <td>Filter by language ID</td>
-                            </tr>
-                            <tr>
-                                <td><code>contentRatingId</code></td>
-                                <td>string (UUID)</td>
-                                <td>No</td>
-                                <td>Filter by content rating ID</td>
+                                <td>Filter reels by maximum content rating. Provide a content rating ID or name. Only reels where the content rating's <code>minAge</code> is &lt;= the maxContentRating's <code>minAge</code> (or <code>IS NULL</code>) will be returned. If not provided, all reels are returned.</td>
                             </tr>
                             <tr>
                                 <td><code>sortField</code></td>
@@ -2339,8 +2309,15 @@ GET /api/payments/rental-status/episode-uuid?type=episode</code></pre>
                             </tr>
                         </tbody>
                     </table>
-                    <h4>Example:</h4>
-                    <pre><code class="language-bash">GET /api/content/reels?page=1&limit=12&status=published</code></pre>
+                    <h4>Examples:</h4>
+                    <pre><code class="language-bash"># Get published reels
+GET /api/content/reels?page=1&limit=12&status=published
+
+# Get reels with maxContentRating filter (by rating name)
+GET /api/content/reels?status=published&maxContentRating=PG-13
+
+# Get reels with maxContentRating filter (by rating ID)
+GET /api/content/reels?status=published&maxContentRating=rating-uuid-123</code></pre>
                     <h4>Response:</h4>
                     <pre><code class="language-json">{
   "success": true,
@@ -2744,6 +2721,8 @@ GET /api/content/sections?context=home&platform=tv&showInactive=true</code></pre
     "deviceCategory": "mobile",
     "activeCategories": ["mobile"],
     "availableCategories": ["tablet", "tv", "web"],
+    "lastWatchedPosition": 1250, // Last watched position in seconds (null if no previous watch or position <= 30 seconds)
+    "lastWatchedAt": "2025-01-14T15:30:00.000Z", // ISO timestamp of when content was last watched (null if no previous watch)
     "rental": {
       "rentalId": "rental-uuid",
       "expiresAt": "2025-01-17T10:30:00.000Z",
@@ -2752,6 +2731,9 @@ GET /api/content/sections?context=home&platform=tv&showInactive=true</code></pre
     }
   }
 }</code></pre>
+                    <div class="info-box" style="margin-top: 1rem;">
+                        <strong>Resume Playback:</strong> The response includes <code>lastWatchedPosition</code> and <code>lastWatchedAt</code> fields if the user has previously watched this content. Use <code>lastWatchedPosition</code> to resume playback from where the user left off. These fields will be <code>null</code> if there's no previous watch history or if the last position was less than 30 seconds.
+                    </div>
                     <div class="info-box" style="margin-top: 1rem;">
                         <strong>Device Categories:</strong> The system limits one active stream per device category (mobile, tablet, TV, web). If you try to start a stream on a device category that's already in use, you'll receive a <code>409 Conflict</code> error with details about the blocking session.
                     </div>
@@ -2958,6 +2940,7 @@ GET /api/content/sections?context=home&platform=tv&showInactive=true</code></pre
       {
         "contentId": "movie-uuid",
         "contentTitle": "Movie Title",
+        "contentType": "movie", // Content type: "movie", "series", "episode", etc.
         "progress": 1234, // Last viewed position in seconds
         "duration": 5400, // Total duration in seconds
         "percentageCompletion": 23, // Completion percentage (0-100)
@@ -4077,11 +4060,18 @@ async function playContent(contentId, deviceInfo, profileId) {
       throw new Error(startResponse.error || 'Failed to start stream');
     }
 
-    const { sessionToken, streamUrl, heartbeatInterval: interval } = startResponse.data;
+    const { sessionToken, streamUrl, heartbeatInterval: interval, lastWatchedPosition, lastWatchedAt } = startResponse.data;
     currentSessionToken = sessionToken;
 
     // Step 3: Start video player with streamUrl
     // videoPlayer.src = streamUrl;
+    
+    // Resume from last watched position if available
+    if (lastWatchedPosition !== null && lastWatchedPosition > 0) {
+      // videoPlayer.currentTime = lastWatchedPosition;
+      console.log(`Resuming playback from ${lastWatchedPosition} seconds (last watched: ${lastWatchedAt})`);
+    }
+    
     // videoPlayer.play();
 
     // Step 4: Start heartbeat interval (heartbeatInterval is in milliseconds)
