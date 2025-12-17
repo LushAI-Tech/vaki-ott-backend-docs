@@ -614,7 +614,6 @@
                     <a href="#reels-api" class="nav-link sub">Reels</a>
                     <a href="#sections-api" class="nav-link sub">Sections</a>
                     <a href="#stream-api" class="nav-link sub">Streaming</a>
-                    <a href="#assets-api" class="nav-link sub">Assets</a>
                     <a href="#references-api" class="nav-link sub">References</a>
                     <a href="#people-api" class="nav-link sub">People</a>
                 </div>
@@ -679,7 +678,7 @@
                     <h4>Request Body:</h4>
                     <pre><code class="language-json">{
   "email": "user@example.com",
-  "purpose": "login" // optional
+  "purpose": "login" 
 }</code></pre>
                     <h4>Response:</h4>
                     <pre><code class="language-json">{
@@ -697,7 +696,7 @@
                     <h4>Request Body:</h4>
                     <pre><code class="language-json">{
   "phoneNumber": "+1234567890",
-  "purpose": "login" // optional
+  "purpose": "login" 
 }</code></pre>
                     <h4>Response:</h4>
                     <pre><code class="language-json">{
@@ -716,7 +715,7 @@
                     <pre><code class="language-json">{
   "identifier": "user@example.com", // email or phone
   "code": "123456",
-  "purpose": "login" // optional
+  "purpose": "login" 
 }</code></pre>
                     <h4>Response:</h4>
                     <pre><code class="language-json">{
@@ -744,10 +743,10 @@
                     <pre><code class="language-json">{
   "identifier": "user@example.com",
   "code": "123456",
-  "deviceName": "Chrome Browser", // optional
-  "deviceType": "web", // optional: web, mobile, tv
-  "deviceId": "device-uuid", // optional
-  "profileId": "profile-uuid" // optional
+  "deviceName": "Chrome Browser", 
+  "deviceType": "web", //web, mobile, tv
+  "deviceId": "device-uuid", 
+  "profileId": "profile-uuid" 
 }</code></pre>
                     <h4>Response:</h4>
                     <pre><code class="language-json">{
@@ -795,11 +794,11 @@
                     <pre><code class="language-json">{
   "identifier": "user@example.com", // email or phone number
   "code": "123456", // OTP code
-  "deviceName": "iPhone 15 Pro", // optional
-  "deviceType": "mobile", // optional: 'mobile' | 'tv' | 'web' | etc.
-  "deviceId": "device-uuid", // optional: unique device identifier
-  "phoneNumberExtension": "+91", // optional: e.g., "+91" (for new phone users)
-  "profile": { // optional: for new users
+  "deviceName": "iPhone 15 Pro", 
+  "deviceType": "mobile", // 'mobile' | 'tv' | 'web' | etc.
+  "deviceId": "device-uuid", //: unique device identifier
+  "phoneNumberExtension": "+91", //  e.g., "+91" (for new phone users)
+  "profile": { // for new users
     "name": "John's Profile",
     "country": "US"
   }
@@ -1072,9 +1071,9 @@
                     <h4>Request Body:</h4>
                     <pre><code class="language-json">{
   "name": "John's Profile",
-  "isKidsProfile": false, // optional
-  "maxContentRating": "PG-13", // optional
-  "country": "US" // optional
+  "isKidsProfile": false, 
+  "maxContentRating": "PG-13", 
+  "country": "US" 
 }</code></pre>
                     <h4>Response:</h4>
                     <pre><code class="language-json">{
@@ -1572,7 +1571,7 @@ GET /api/payments/pricing/episode/episode-uuid</code></pre>
                     <pre><code class="language-json">{
   "contentId": "movie-uuid",
   "contentType": "movie", // "movie" | "series" | "episode"
-  "durationHours": 24, // optional: 24, 36, 72, 96, or 168 (defaults to 24)
+  "durationHours": 24, //  24, 36, 72, 96, or 168 (defaults to 24)
   "platform": "web" // optional: "ios" | "android" | "web"
 }</code></pre>
                     <h4>Request Body Parameters:</h4>
@@ -2296,12 +2295,12 @@ GET /api/payments/rental-status/episode-uuid?type=episode</code></pre>
                                 <td>No</td>
                                 <td>Search reels by title or description</td>
                             </tr>
-                            <tr>
+                            <!-- <tr>
                                 <td><code>contentType</code></td>
                                 <td>string</td>
                                 <td>No</td>
                                 <td>Filter by content type: <code>free</code>, <code>rent</code>, <code>subscription</code></td>
-                            </tr>
+                            </tr> -->
                             <tr>
                                 <td><code>minYear</code></td>
                                 <td>number</td>
@@ -2374,6 +2373,296 @@ GET /api/payments/rental-status/episode-uuid?type=episode</code></pre>
                 </div>
             </section>
 
+            <!-- Content Service: Sections API -->
+            <section id="sections-api" class="section">
+                <h2>Sections API</h2>
+                <p>Get sections with populated movie data for different contexts and platforms. Supports multiple contexts: home, movies, short films, documentaries, bts, search, and profile.</p>
+
+                <div class="info-box warning">
+                    <strong>Deprecated:</strong> The <code>/api/content/home</code> endpoint is deprecated. Use <code>/api/content/sections?context=home&platform=...</code> instead. The old endpoint still works for backward compatibility but redirects to the new endpoint.
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">GET</span>
+                        <span class="endpoint-path">/api/content/sections</span>
+                    </div>
+                    <div class="endpoint-description">Get active sections for a context and platform</div>
+                    <h4>Query Parameters:</h4>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Required</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>context</code></td>
+                                <td>string</td>
+                                <td>Yes</td>
+                                <td>Section context: <code>home</code>, <code>movies</code>, <code>short_films</code> (or <code>short-films</code>), <code>documentaries</code>, <code>bts</code>, <code>search</code>, or <code>profile</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>platform</code></td>
+                                <td>string</td>
+                                <td>Yes</td>
+                                <td>Platform filter: <code>web</code>, <code>mobile</code>, or <code>tv</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>maxContentRating</code></td>
+                                <td>string</td>
+                                <td>No</td>
+                                <td>Filter movies by maximum content rating. Provide a content rating ID or name. Only movies with content rating minAge &lt;= maxContentRating minAge (or IS NULL) will be returned. If not provided, all movies are returned.</td>
+                            </tr>
+                            <tr>
+                                <td><code>showInactive</code></td>
+                                <td>string</td>
+                                <td>No</td>
+                                <td>Include inactive sections. Set to <code>true</code> to include sections where <code>isActive = false</code>. Default: <code>false</code> (only active sections)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h4>Examples:</h4>
+                    <pre><code class="language-bash"># Get home sections for web platform
+GET /api/content/sections?context=home&platform=web
+
+# Get movies sections for mobile platform with maxContentRating filter (by ID)
+GET /api/content/sections?context=movies&platform=mobile&maxContentRating=rating-uuid-123
+
+# Get movies sections with maxContentRating filter (by name, e.g., "PG-13")
+GET /api/content/sections?context=movies&platform=mobile&maxContentRating=PG-13
+
+# Get all sections including inactive ones
+GET /api/content/sections?context=home&platform=tv&showInactive=true</code></pre>
+                    <h4>Response Structure:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": [
+    {
+      "id": "section-123",
+      "slug": "trending",
+      "title": "Trending Now",
+      "description": "Popular movies this week",
+      "platform": "web",
+      "context": "home",
+      "sectionType": "carousel",
+      "displayOrder": 0,
+      "priority": 0,
+      "isActive": true,
+      "showViewAll": true,
+      "styleConfig": {
+        "background": "dark",
+        "showArrows": true,
+        "showDots": false,
+        "titleImageTransition": {
+          "type": "fade-slide-up",
+          "duration": 700,
+          "easing": "ease-out",
+          "delay": 200,
+          "distance": 30
+        }
+      },
+      "dataSourceType": "query", // or "manual"
+      "movies": [
+        {
+          "id": "movie-456",
+          "title": "Movie Title",
+          "slug": "movie-title",
+          "description": "Movie description",
+          "year": 2024,
+          "duration": 120,
+          "language": "English",
+          "rating": "PG-13",
+          "genres": ["Action", "Thriller"],
+          "posterUrl": "https://cdn.example.com/posters/movie-456.jpg",
+          "backdropUrl": "https://cdn.example.com/backdrops/movie-456.jpg",
+          "titleImageUrl": "https://cdn.example.com/title-images/movie-456.jpg",
+          "heroUrl": "https://cdn.example.com/hero/movie-456.jpg",
+          "posterCleanUrl": "https://cdn.example.com/posters-clean/movie-456.jpg",
+          "backdropCleanUrl": "https://cdn.example.com/backdrops-clean/movie-456.jpg"
+        }
+      ],
+      "queryConfig": {
+        "filters": {
+          "genreSlugs": ["action"],
+          "minYear": 2020,
+          "status": "published"
+        },
+        "sort": {
+          "field": "releaseDate",
+          "direction": "desc"
+        },
+        "limit": 20
+      }
+    }
+  ]
+}</code></pre>
+                    <h4>Section Type Values:</h4>
+                    <p>The <code>sectionType</code> field indicates how the section should be displayed:</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Value</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>carousel</code></td>
+                                <td>Horizontal scrolling carousel of movies</td>
+                            </tr>
+                            <tr>
+                                <td><code>carousel-album</code></td>
+                                <td>Album-style carousel with larger movie cards</td>
+                            </tr>
+                            <tr>
+                                <td><code>carousel-banner</code></td>
+                                <td>Banner-style carousel with featured content</td>
+                            </tr>
+                            <tr>
+                                <td><code>hero</code></td>
+                                <td>Hero section typically used for featured content at the top</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h4>Context Values:</h4>
+                    <p>The <code>context</code> parameter determines which sections to retrieve:</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Value</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>home</code></td>
+                                <td>Home page sections</td>
+                            </tr>
+                            <tr>
+                                <td><code>movies</code></td>
+                                <td>Movies page sections</td>
+                            </tr>
+                            <tr>
+                                <td><code>short_films</code> or <code>short-films</code></td>
+                                <td>Short films page sections (both formats accepted)</td>
+                            </tr>
+                            <tr>
+                                <td><code>documentaries</code></td>
+                                <td>Documentaries page sections</td>
+                            </tr>
+                            <tr>
+                                <td><code>bts</code></td>
+                                <td>Behind the scenes sections</td>
+                            </tr>
+                            <tr>
+                                <td><code>search</code></td>
+                                <td>Search page sections</td>
+                            </tr>
+                            <tr>
+                                <td><code>profile</code></td>
+                                <td>Profile page sections</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="info-box">
+                        <strong>Notes:</strong>
+                        <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
+                            <li>Returns only active sections that respect <code>startDate</code> and <code>endDate</code> scheduling (unless <code>showInactive=true</code>)</li>
+                            <li>Sections are sorted by <code>displayOrder</code> (ascending), then <code>priority</code> (descending)</li>
+                            <li>Sections with <code>platform=web</code> are shown on all platforms</li>
+                            <li>When <code>maxContentRating</code> is provided, movies are filtered by content rating. Only movies where the content rating's <code>minAge</code> is &lt;= the maxContentRating's <code>minAge</code> (or <code>IS NULL</code>) are included. This filter is applied at the movie level, not the section level. The parameter accepts either a content rating ID (UUID) or name (e.g., "PG-13", "R").</li>
+                            <li>When <code>showInactive=true</code>, sections with <code>isActive=false</code> are included in the response</li>
+                            <li>For query-based sections, if query execution fails, the section will have an empty <code>movies</code> array and may include a <code>queryError</code> field</li>
+                            <li>For manual sections, movies are always included (filtered by maxContentRating if applicable)</li>
+                        </ul>
+                    </div>
+                    <h4>Style Configuration:</h4>
+                    <p>The <code>styleConfig</code> field contains styling and animation configuration for sections. For hero sections, it includes <code>titleImageTransition</code> which controls how title images animate onto the screen.</p>
+                    <h5>Title Image Transition Options:</h5>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Field</th>
+                                <th>Type</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>type</code></td>
+                                <td>string</td>
+                                <td>Transition type: <code>fade</code>, <code>slide-up</code>, <code>slide-down</code>, <code>slide-left</code>, <code>slide-right</code>, <code>scale</code>, <code>fade-scale</code>, <code>fade-slide-up</code>, <code>zoom-in</code>, or <code>none</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>duration</code></td>
+                                <td>number</td>
+                                <td>Duration in milliseconds (0-2000)</td>
+                            </tr>
+                            <tr>
+                                <td><code>easing</code></td>
+                                <td>string</td>
+                                <td>CSS easing function: <code>linear</code>, <code>ease</code>, <code>ease-in</code>, <code>ease-out</code>, <code>ease-in-out</code>, or custom cubic-bezier</td>
+                            </tr>
+                            <tr>
+                                <td><code>delay</code></td>
+                                <td>number</td>
+                                <td>Optional delay in milliseconds (0-1000) before animation starts</td>
+                            </tr>
+                            <tr>
+                                <td><code>distance</code></td>
+                                <td>number</td>
+                                <td>Optional distance in pixels (0-200) for slide animations</td>
+                            </tr>
+                            <tr>
+                                <td><code>scaleFrom</code></td>
+                                <td>number</td>
+                                <td>Optional starting scale (0.0-2.0) for scale animations</td>
+                            </tr>
+                            <tr>
+                                <td><code>scaleTo</code></td>
+                                <td>number</td>
+                                <td>Optional ending scale (0.0-2.0) for scale animations</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h5>Example Style Configurations:</h5>
+                    <pre><code class="language-json">// Hero section with title image transition
+{
+  "titleImageTransition": {
+    "type": "fade-slide-up",
+    "duration": 700,
+    "easing": "ease-out",
+    "delay": 200,
+    "distance": 30
+  },
+  "background": "dark",
+  "showIndicators": true
+}
+
+// Carousel section
+{
+  "background": "transparent",
+  "showArrows": true,
+  "showDots": true,
+  "cardVariant": "poster",
+  "spacing": "normal",
+  "gap": 16
+}</code></pre>
+                    <div class="info-box">
+                        <strong>Platform-Specific Image Sizes:</strong> The API automatically returns appropriate image resolutions based on the platform parameter:
+                        <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
+                            <li><strong>Mobile:</strong> Returns <code>MEDIUM</code> resolution images for <code>posterUrl</code> and <code>backdropUrl</code></li>
+                            <li><strong>Web/TV:</strong> Returns <code>LARGE</code> resolution images for <code>posterUrl</code> and <code>backdropUrl</code></li>
+                        </ul>
+                        Falls back to <code>ORIGINAL</code> if the preferred resolution is not available. See <a href="docs/section-style-config.md" target="_blank">Section Style Configuration Guide</a> for complete documentation.
+                    </div>
+                </div>
+            </section>
+
             <!-- Content Service: Streaming API -->
             <section id="stream-api" class="section">
                 <h2>Streaming API</h2>
@@ -2381,9 +2670,9 @@ GET /api/payments/rental-status/episode-uuid?type=episode</code></pre>
                 <div class="info-box" style="margin-bottom: 1.5rem;">
                     <strong>Route Prefix:</strong> Streaming routes are mounted at <code>/api/content/stream</code>
                 </div>
-                <div class="info-box warning" style="margin-bottom: 1.5rem;">
+                <!-- <div class="info-box warning" style="margin-bottom: 1.5rem;">
                     <strong>Redis Required:</strong> Streaming functionality requires Redis to be available. If Redis is unavailable, streaming endpoints will return an error.
-                </div>
+                </div> -->
 
                 <div class="endpoint">
                     <div class="endpoint-header">
@@ -2437,12 +2726,12 @@ GET /api/payments/rental-status/episode-uuid?type=episode</code></pre>
                     <h4>Request Body:</h4>
                     <pre><code class="language-json">{
   "contentId": "movie-uuid",
-  "profileId": "profile-uuid", // optional
+  "profileId": "profile-uuid",
   "deviceId": "device-uuid", // required - unique device identifier
   "deviceType": "mobile", // required - "mobile" | "tablet" | "tv" | "web" | "other"
   "deviceName": "iPhone 15 Pro", // required - human-readable device name
-  "deviceModel": "iPhone15,2", // optional
-  "appVersion": "1.0.0" // optional
+  "deviceModel": "iPhone15,2", 
+  "appVersion": "1.0.0" 
 }</code></pre>
                     <h4>Response:</h4>
                     <pre><code class="language-json">{
@@ -2481,8 +2770,8 @@ GET /api/payments/rental-status/episode-uuid?type=episode</code></pre>
                     <h4>Request Body:</h4>
                     <pre><code class="language-json">{
   "sessionToken": "session-token-xxxxx",
-  "position": 120, // optional - current playback position in seconds
-  "quality": "1080p", // optional - current video quality
+  "position": 120, //   current playback position in seconds
+  "quality": "1080p", // - current video quality
   "bufferHealth": 10 // optional - buffer health in seconds
 }</code></pre>
                     <h4>Response:</h4>
@@ -2508,8 +2797,8 @@ GET /api/payments/rental-status/episode-uuid?type=episode</code></pre>
                     <h4>Request Body:</h4>
                     <pre><code class="language-json">{
   "sessionToken": "session-token-xxxxx",
-  "position": 3600, // optional - final playback position in seconds
-  "watchDuration": 3600 // optional - total watch time in seconds
+  "position": 3600, //  final playback position in seconds
+  "watchDuration": 3600 // total watch time in seconds
 }</code></pre>
                     <h4>Response:</h4>
                     <pre><code class="language-json">{
@@ -2654,14 +2943,57 @@ GET /api/payments/rental-status/episode-uuid?type=episode</code></pre>
 }</code></pre>
                 </div>
 
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">GET</span>
+                        <span class="endpoint-path">/api/content/stream/continue-watching</span>
+                    </div>
+                    <div class="endpoint-description">Get continue watching items with progress and thumbnail. Returns content the user has watched (both active and historical sessions) with last viewed position.</div>
+                    <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span></p>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "contentId": "movie-uuid",
+        "contentTitle": "Movie Title",
+        "progress": 1234, // Last viewed position in seconds
+        "duration": 5400, // Total duration in seconds
+        "percentageCompletion": 23, // Completion percentage (0-100)
+        "thumbnailUrl": "https://cdn.example.com/posters/movie-uuid.jpg", // Primary poster URL (same as posterUrl)
+        "posterUrl": "https://cdn.example.com/posters/movie-uuid.jpg", // Primary poster URL
+        "backdropUrl": "https://cdn.example.com/backdrops/movie-uuid.jpg", // Primary backdrop URL
+        "deviceName": "iPhone 15 Pro", // null if not currently active
+        "deviceType": "mobile", // null if not currently active
+        "deviceCategory": "mobile", // null if not currently active
+        "lastWatchedAt": "2025-01-15T10:30:00.000Z"
+      }
+    ]
+  }
+}</code></pre>
+                    <div class="info-box" style="margin-top: 1rem;">
+                        <strong>Notes:</strong>
+                        <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
+                            <li>Returns both active sessions (from Redis) and historical sessions (from PostgreSQL)</li>
+                            <li>For active sessions, uses current position from Redis</li>
+                            <li>For historical sessions, uses last position from the most recent session</li>
+                            <li>Only includes content with progress > 30 seconds and completion < 95%</li>
+                            <li>Sorted by most recently watched</li>
+                            <li>If Redis is unavailable, falls back to historical data only</li>
+                        </ul>
+                    </div>
+                </div>
+
                 <div class="info-box" style="margin-top: 2rem;">
                     <strong>Streaming Flow:</strong>
                     <ol style="margin-top: 0.5rem; margin-left: 1.5rem;">
                         <li>Check if user can start a stream: <code>GET /api/content/stream/can-start</code></li>
                         <li>Start streaming session: <code>POST /api/content/stream/start</code> - returns <code>sessionToken</code> and <code>streamUrl</code></li>
                         <li>Begin playback using the <code>streamUrl</code></li>
-                        <li>Send heartbeat every 30 seconds: <code>POST /api/content/stream/heartbeat</code> with <code>sessionToken</code></li>
+                        <li>Send heartbeat every 30 seconds: <code>POST /api/content/stream/heartbeat</code> with <code>sessionToken</code> and <code>position</code></li>
                         <li>When playback stops: <code>POST /api/content/stream/stop</code> with final position</li>
+                        <li>Get continue watching list: <code>GET /api/content/stream/continue-watching</code> to show user's watch progress</li>
                     </ol>
                 </div>
 
@@ -2674,395 +3006,6 @@ GET /api/payments/rental-status/episode-uuid?type=episode</code></pre>
                         <li>Use <code>POST /api/content/stream/force-logout</code> to terminate other sessions if needed</li>
                         <li>Same device can reconnect - old session is automatically replaced</li>
                     </ul>
-                </div>
-            </section>
-
-            <!-- Content Service: Sections API -->
-            <section id="sections-api" class="section">
-                <h2>Sections API</h2>
-                <p>Get sections with populated movie data for different contexts and platforms. Supports multiple contexts: home, movies, short films, documentaries, bts, search, and profile.</p>
-
-                <div class="info-box warning">
-                    <strong>Deprecated:</strong> The <code>/api/content/home</code> endpoint is deprecated. Use <code>/api/content/sections?context=home&platform=...</code> instead. The old endpoint still works for backward compatibility but redirects to the new endpoint.
-                </div>
-
-                <div class="endpoint">
-                    <div class="endpoint-header">
-                        <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/content/sections</span>
-                    </div>
-                    <div class="endpoint-description">Get active sections for a context and platform</div>
-                    <h4>Query Parameters:</h4>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Parameter</th>
-                                <th>Type</th>
-                                <th>Required</th>
-                                <th>Description</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><code>context</code></td>
-                                <td>string</td>
-                                <td>Yes</td>
-                                <td>Section context: <code>home</code>, <code>movies</code>, <code>short_films</code> (or <code>short-films</code>), <code>documentaries</code>, <code>bts</code>, <code>search</code>, or <code>profile</code></td>
-                            </tr>
-                            <tr>
-                                <td><code>platform</code></td>
-                                <td>string</td>
-                                <td>Yes</td>
-                                <td>Platform filter: <code>web</code>, <code>mobile</code>, or <code>tv</code></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <h4>Example:</h4>
-                    <pre><code class="language-bash">GET /api/content/sections?context=home&platform=web</code></pre>
-                    <h4>Response Structure:</h4>
-                    <pre><code class="language-json">{
-  "success": true,
-  "data": [
-    {
-      "id": "section-123",
-      "slug": "trending",
-      "title": "Trending Now",
-      "description": "Popular movies this week",
-      "platform": "web",
-      "context": "home",
-      "sectionType": "carousel",
-      "displayOrder": 0,
-      "priority": 0,
-      "showViewAll": true,
-      "styleConfig": {
-        "background": "dark",
-        "showArrows": true,
-        "showDots": false,
-        "titleImageTransition": {
-          "type": "fade-slide-up",
-          "duration": 700,
-          "easing": "ease-out",
-          "delay": 200,
-          "distance": 30
-        }
-      },
-      "dataSourceType": "query", // or "manual"
-      "movies": [
-        {
-          "id": "movie-456",
-          "title": "Movie Title",
-          "slug": "movie-title",
-          "description": "Movie description",
-          "year": 2024,
-          "duration": 120,
-          "language": "English",
-          "rating": "PG-13",
-          "genres": ["Action", "Thriller"],
-          "posterUrl": "https://cdn.example.com/posters/movie-456.jpg",
-          "backdropUrl": "https://cdn.example.com/backdrops/movie-456.jpg",
-          "titleImageUrl": "https://cdn.example.com/title-images/movie-456.jpg"
-        }
-      ],
-      "queryConfig": {
-        "filters": {
-          "genreSlugs": ["action"],
-          "minYear": 2020,
-          "status": "published"
-        },
-        "sort": {
-          "field": "releaseDate",
-          "direction": "desc"
-        },
-        "limit": 20
-      }
-    }
-  ]
-}</code></pre>
-                    <h4>Section Type Values:</h4>
-                    <p>The <code>sectionType</code> field indicates how the section should be displayed:</p>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Value</th>
-                                <th>Description</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><code>carousel</code></td>
-                                <td>Horizontal scrolling carousel of movies</td>
-                            </tr>
-                            <tr>
-                                <td><code>carousel-album</code></td>
-                                <td>Album-style carousel with larger movie cards</td>
-                            </tr>
-                            <tr>
-                                <td><code>carousel-banner</code></td>
-                                <td>Banner-style carousel with featured content</td>
-                            </tr>
-                            <tr>
-                                <td><code>hero</code></td>
-                                <td>Hero section typically used for featured content at the top</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <h4>Context Values:</h4>
-                    <p>The <code>context</code> parameter determines which sections to retrieve:</p>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Value</th>
-                                <th>Description</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><code>home</code></td>
-                                <td>Home page sections</td>
-                            </tr>
-                            <tr>
-                                <td><code>movies</code></td>
-                                <td>Movies page sections</td>
-                            </tr>
-                            <tr>
-                                <td><code>short_films</code> or <code>short-films</code></td>
-                                <td>Short films page sections (both formats accepted)</td>
-                            </tr>
-                            <tr>
-                                <td><code>documentaries</code></td>
-                                <td>Documentaries page sections</td>
-                            </tr>
-                            <tr>
-                                <td><code>bts</code></td>
-                                <td>Behind the scenes sections</td>
-                            </tr>
-                            <tr>
-                                <td><code>search</code></td>
-                                <td>Search page sections</td>
-                            </tr>
-                            <tr>
-                                <td><code>profile</code></td>
-                                <td>Profile page sections</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <div class="info-box">
-                        <strong>Note:</strong> Returns only active sections that respect <code>startDate</code> and <code>endDate</code> scheduling. Sections are sorted by <code>displayOrder</code> (ascending), then <code>priority</code> (descending). Sections with <code>platform=web</code> are shown on all platforms.
-                    </div>
-                    <h4>Style Configuration:</h4>
-                    <p>The <code>styleConfig</code> field contains styling and animation configuration for sections. For hero sections, it includes <code>titleImageTransition</code> which controls how title images animate onto the screen.</p>
-                    <h5>Title Image Transition Options:</h5>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Field</th>
-                                <th>Type</th>
-                                <th>Description</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><code>type</code></td>
-                                <td>string</td>
-                                <td>Transition type: <code>fade</code>, <code>slide-up</code>, <code>slide-down</code>, <code>slide-left</code>, <code>slide-right</code>, <code>scale</code>, <code>fade-scale</code>, <code>fade-slide-up</code>, <code>zoom-in</code>, or <code>none</code></td>
-                            </tr>
-                            <tr>
-                                <td><code>duration</code></td>
-                                <td>number</td>
-                                <td>Duration in milliseconds (0-2000)</td>
-                            </tr>
-                            <tr>
-                                <td><code>easing</code></td>
-                                <td>string</td>
-                                <td>CSS easing function: <code>linear</code>, <code>ease</code>, <code>ease-in</code>, <code>ease-out</code>, <code>ease-in-out</code>, or custom cubic-bezier</td>
-                            </tr>
-                            <tr>
-                                <td><code>delay</code></td>
-                                <td>number</td>
-                                <td>Optional delay in milliseconds (0-1000) before animation starts</td>
-                            </tr>
-                            <tr>
-                                <td><code>distance</code></td>
-                                <td>number</td>
-                                <td>Optional distance in pixels (0-200) for slide animations</td>
-                            </tr>
-                            <tr>
-                                <td><code>scaleFrom</code></td>
-                                <td>number</td>
-                                <td>Optional starting scale (0.0-2.0) for scale animations</td>
-                            </tr>
-                            <tr>
-                                <td><code>scaleTo</code></td>
-                                <td>number</td>
-                                <td>Optional ending scale (0.0-2.0) for scale animations</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <h5>Example Style Configurations:</h5>
-                    <pre><code class="language-json">// Hero section with title image transition
-{
-  "titleImageTransition": {
-    "type": "fade-slide-up",
-    "duration": 700,
-    "easing": "ease-out",
-    "delay": 200,
-    "distance": 30
-  },
-  "background": "dark",
-  "showIndicators": true
-}
-
-// Carousel section
-{
-  "background": "transparent",
-  "showArrows": true,
-  "showDots": true,
-  "cardVariant": "poster",
-  "spacing": "normal",
-  "gap": 16
-}</code></pre>
-                    <div class="info-box">
-                        <strong>Platform-Specific Image Sizes:</strong> The API automatically returns appropriate image resolutions based on the platform parameter:
-                        <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
-                            <li><strong>Mobile:</strong> Returns <code>MEDIUM</code> resolution images for <code>posterUrl</code> and <code>backdropUrl</code></li>
-                            <li><strong>Web/TV:</strong> Returns <code>LARGE</code> resolution images for <code>posterUrl</code> and <code>backdropUrl</code></li>
-                        </ul>
-                        Falls back to <code>ORIGINAL</code> if the preferred resolution is not available. See <a href="docs/section-style-config.md" target="_blank">Section Style Configuration Guide</a> for complete documentation.
-                    </div>
-                </div>
-            </section>
-
-            <!-- Content Service: Assets API -->
-            <section id="assets-api" class="section">
-                <h2>Assets API</h2>
-                <p>Get media assets (posters, backdrops, videos, subtitles) for movies and other entities.</p>
-
-                <div class="endpoint">
-                    <div class="endpoint-header">
-                        <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/content/assets</span>
-                    </div>
-                    <div class="endpoint-description">Get media assets by entity type and ID</div>
-                    <h4>Query Parameters:</h4>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Parameter</th>
-                                <th>Type</th>
-                                <th>Required</th>
-                                <th>Description</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><code>entityType</code></td>
-                                <td>string</td>
-                                <td>Yes</td>
-                                <td>Entity type (e.g., <code>movie</code>, <code>actor</code>)</td>
-                            </tr>
-                            <tr>
-                                <td><code>entityId</code></td>
-                                <td>string</td>
-                                <td>Yes</td>
-                                <td>Entity ID</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <h4>Example:</h4>
-                    <pre><code class="language-bash">GET /api/content/assets?entityType=movie&entityId=MOV123</code></pre>
-                    <h4>Response:</h4>
-                    <pre><code class="language-json">{
-  "success": true,
-  "data": {
-    "assets": [
-      {
-        "id": "asset-uuid",
-        "entityType": "movie",
-        "entityId": "MOV123",
-        "fileType": "poster",
-        "fileCategory": "poster",
-        "fileName": "poster.jpg",
-        "cdnUrl": "https://cdn.example.com/posters/MOV123.jpg",
-        "width": 1920,
-        "height": 1080,
-        "fileSize": 524288,
-        "mimeType": "image/jpeg"
-      }
-    ],
-    "grouped": {
-      "poster": [
-        {
-          "id": "asset-uuid",
-          "fileType": "poster",
-          "cdnUrl": "https://cdn.example.com/posters/MOV123.jpg"
-        }
-      ]
-    }
-  }
-}</code></pre>
-                </div>
-
-                <div class="endpoint">
-                    <div class="endpoint-header">
-                        <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/content/assets/movies/:movieId</span>
-                    </div>
-                    <div class="endpoint-description">Get movie assets grouped by type (posters, backdrops, videos, trailers, subtitles)</div>
-                    <h4>Example:</h4>
-                    <pre><code class="language-bash">GET /api/content/assets/movies/abc123</code></pre>
-                    <h4>Response:</h4>
-                    <pre><code class="language-json">{
-  "success": true,
-  "data": {
-    "assets": [
-      {
-        "id": "asset-uuid",
-        "fileType": "poster",
-        "cdnUrl": "https://cdn.example.com/posters/movie-uuid.jpg"
-      }
-    ],
-    "grouped": {
-      "posters": [
-        {
-          "id": "asset-uuid",
-          "fileType": "poster",
-          "fileCategory": "poster",
-          "cdnUrl": "https://cdn.example.com/posters/movie-uuid.jpg",
-          "width": 1920,
-          "height": 1080
-        }
-      ],
-      "backdrops": [
-        {
-          "id": "asset-uuid",
-          "fileType": "backdrop",
-          "cdnUrl": "https://cdn.example.com/backdrops/movie-uuid.jpg"
-        }
-      ],
-      "videos": [],
-      "trailers": [],
-      "subtitles": []
-    }
-  }
-}</code></pre>
-                </div>
-
-                <div class="endpoint">
-                    <div class="endpoint-header">
-                        <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/content/assets/:assetId/url</span>
-                    </div>
-                    <div class="endpoint-description">Get presigned CDN URL for an asset with expiry metadata</div>
-                    <h4>Example:</h4>
-                    <pre><code class="language-bash">GET /api/content/assets/asset-123/url?expiresIn=3600</code></pre>
-                    <h4>Response:</h4>
-                    <pre><code class="language-json">{
-  "success": true,
-  "data": {
-    "url": "https://cdn.example.com/assets/asset-123.jpg",
-    "expiresAt": "2025-01-15T11:30:00.000Z"
-  }
-}</code></pre>
                 </div>
             </section>
 
@@ -3238,76 +3181,6 @@ GET /api/payments/rental-status/episode-uuid?type=episode</code></pre>
     "createdAt": "2025-01-01T00:00:00.000Z",
     "updatedAt": "2025-01-01T00:00:00.000Z"
   }
-}</code></pre>
-                </div>
-
-                <h3>Stream Videos</h3>
-                <div class="endpoint">
-                    <div class="endpoint-header">
-                        <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/content/references/stream-videos</span>
-                    </div>
-                    <div class="endpoint-description">Get stream videos with optional filters</div>
-                    <h4>Query Parameters:</h4>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Parameter</th>
-                                <th>Type</th>
-                                <th>Description</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><code>movieId</code></td>
-                                <td>string</td>
-                                <td>Filter by movie ID</td>
-                            </tr>
-                            <tr>
-                                <td><code>status</code></td>
-                                <td>string</td>
-                                <td>Filter by status</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <h4>Response:</h4>
-                    <pre><code class="language-json">{
-  "success": true,
-  "data": [
-    {
-      "id": "stream-video-uuid",
-      "movieId": "movie-uuid",
-      "videoId": "cloudflare-stream-video-id",
-      "status": "ready",
-      "duration": 7200,
-      "width": 1920,
-      "height": 1080,
-      "createdAt": "2025-01-01T00:00:00.000Z"
-    }
-  ]
-}</code></pre>
-                </div>
-
-                <div class="endpoint">
-                    <div class="endpoint-header">
-                        <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/content/references/movies/:movieId/stream-videos</span>
-                    </div>
-                    <div class="endpoint-description">Get stream videos for a specific movie</div>
-                    <h4>Response:</h4>
-                    <pre><code class="language-json">{
-  "success": true,
-  "data": [
-    {
-      "id": "stream-video-uuid",
-      "movieId": "movie-uuid",
-      "videoId": "cloudflare-stream-video-id",
-      "status": "ready",
-      "duration": 7200,
-      "width": 1920,
-      "height": 1080
-    }
-  ]
 }</code></pre>
                 </div>
 
@@ -3836,16 +3709,40 @@ async function getReels(page = 1, limit = 20) {
 }
 
 // Get sections for a context and platform
-async function getSections(context = 'home', platform = 'web') {
+async function getSections(context = 'home', platform = 'web', options = {}) {
+  const { maxContentRating, showInactive } = options;
+  const params = new URLSearchParams({
+    context,
+    platform,
+  });
+  
+  if (maxContentRating) {
+    params.append('maxContentRating', maxContentRating);
+  }
+  
+  if (showInactive === true) {
+    params.append('showInactive', 'true');
+  }
+  
   const response = await fetch(
-    `${API_BASE_URL}/api/content/sections?context=${context}&platform=${platform}`
+    `${API_BASE_URL}/api/content/sections?${params.toString()}`
   );
   return response.json();
 }
 
 // Get home sections (backward compatibility - uses new endpoint)
-async function getHomeSections(platform = 'web') {
-  return getSections('home', platform);
+async function getHomeSections(platform = 'web', options = {}) {
+  return getSections('home', platform, options);
+}
+
+// Example: Get sections with maxContentRating filter (by rating name)
+async function getSectionsByRating(context = 'home', platform = 'web', ratingName = 'PG-13') {
+  return getSections(context, platform, { maxContentRating: ratingName });
+}
+
+// Example: Get sections with maxContentRating filter (by rating ID)
+async function getSectionsByRatingId(context = 'home', platform = 'web', ratingId) {
+  return getSections(context, platform, { maxContentRating: ratingId });
 }
 
 // Authenticated request helper
@@ -4150,6 +4047,11 @@ async function getStreamHistory(page = 1, limit = 20) {
   const response = await authenticatedFetch(
     `/api/content/stream/history?page=${page}&limit=${limit}`
   );
+  return response.json();
+}
+
+async function getContinueWatching() {
+  const response = await authenticatedFetch('/api/content/stream/continue-watching');
   return response.json();
 }
 
