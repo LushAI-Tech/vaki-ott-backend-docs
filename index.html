@@ -2740,7 +2740,7 @@ GET /api/content/sections?context=home&platform=tv&showInactive=true</code></pre
     "sessionToken": "session-token-xxxxx",
     "streamUrl": "https://stream.vaki-ott.com/content/movie-uuid/playlist.m3u8",
     "expiresAt": "2025-01-15T11:00:00.000Z",
-    "heartbeatInterval": 30,
+    "heartbeatInterval": 30000, // in milliseconds (e.g., 30000 = 30 seconds)
     "deviceCategory": "mobile",
     "activeCategories": ["mobile"],
     "availableCategories": ["tablet", "tv", "web"],
@@ -2765,7 +2765,7 @@ GET /api/content/sections?context=home&platform=tv&showInactive=true</code></pre
                         <span class="badge badge-post">POST</span>
                         <span class="endpoint-path">/api/content/stream/heartbeat</span>
                     </div>
-                    <div class="endpoint-description">Send heartbeat to keep session alive (must be called every 30 seconds during playback)</div>
+                    <div class="endpoint-description">Send heartbeat to keep session alive (must be called at the interval specified in <code>heartbeatInterval</code> from the start response, typically every 30 seconds)</div>
                     <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span></p>
                     <h4>Request Body:</h4>
                     <pre><code class="language-json">{
@@ -2779,11 +2779,11 @@ GET /api/content/sections?context=home&platform=tv&showInactive=true</code></pre
   "success": true,
   "data": {
     "valid": true,
-    "nextHeartbeat": 30
+    "nextHeartbeat": 30000 // in milliseconds (e.g., 30000 = 30 seconds)
   }
 }</code></pre>
                     <div class="info-box" style="margin-top: 1rem;">
-                        <strong>Heartbeat Requirements:</strong> Send heartbeat every 30 seconds during active playback. If heartbeat is not received for 90 seconds, the session expires. Rate limiting applies - too many requests will return <code>429 Too Many Requests</code>.
+                        <strong>Heartbeat Requirements:</strong> Send heartbeat at the interval specified in <code>heartbeatInterval</code> (typically 30000 milliseconds / 30 seconds) during active playback. If heartbeat is not received for 90 seconds, the session expires. Rate limiting applies - too many requests will return <code>429 Too Many Requests</code>.
                     </div>
                 </div>
 
@@ -4084,7 +4084,7 @@ async function playContent(contentId, deviceInfo, profileId) {
     // videoPlayer.src = streamUrl;
     // videoPlayer.play();
 
-    // Step 4: Start heartbeat interval
+    // Step 4: Start heartbeat interval (heartbeatInterval is in milliseconds)
     heartbeatInterval = setInterval(async () => {
       try {
         const position = Math.floor(videoPlayer.currentTime || 0);
@@ -4097,7 +4097,7 @@ async function playContent(contentId, deviceInfo, profileId) {
           // Handle session expired
         }
       }
-    }, interval * 1000);
+    }, interval); // interval is already in milliseconds
 
     return { sessionToken, streamUrl };
   } catch (error) {
