@@ -611,8 +611,10 @@
                 <div class="nav-section">
                     <div class="nav-section-title">Content Service</div>
                     <a href="#movies-api" class="nav-link sub">Movies</a>
+                    <a href="#series-api" class="nav-link sub">Series</a>
                     <a href="#reels-api" class="nav-link sub">Reels</a>
                     <a href="#sections-api" class="nav-link sub">Sections</a>
+                    <a href="#trending-api" class="nav-link sub">Trending</a>
                     <a href="#stream-api" class="nav-link sub">Streaming</a>
                     <a href="#references-api" class="nav-link sub">References</a>
                     <a href="#people-api" class="nav-link sub">People</a>
@@ -2246,6 +2248,202 @@ GET /api/payments/rental-status/episode-uuid?type=episode</code></pre>
                 </div>
             </section>
 
+            <!-- Content Service: Series API -->
+            <section id="series-api" class="section">
+                <h2>Series API</h2>
+                <p>Public catalog endpoints for browsing and viewing TV series content. No authentication required.</p>
+                <div class="info-box" style="margin-bottom: 1.5rem;">
+                    <strong>Route Prefix:</strong> All Content Service routes are prefixed with <code>/api/content/</code>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">GET</span>
+                        <span class="endpoint-path">/api/content/series</span>
+                    </div>
+                    <div class="endpoint-description">Get paginated list of series with filters</div>
+                    <h4>Query Parameters:</h4>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Required</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>page</code></td>
+                                <td>number</td>
+                                <td>No</td>
+                                <td>Page number (default: 1)</td>
+                            </tr>
+                            <tr>
+                                <td><code>limit</code></td>
+                                <td>number</td>
+                                <td>No</td>
+                                <td>Items per page (default: 20, max: 100)</td>
+                            </tr>
+                            <tr>
+                                <td><code>status</code></td>
+                                <td>string</td>
+                                <td>No</td>
+                                <td>Filter by status: <code>draft</code>, <code>published</code>, <code>archived</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>search</code></td>
+                                <td>string</td>
+                                <td>No</td>
+                                <td>Search series by title or description</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h4>Example:</h4>
+                    <pre><code class="language-bash">GET /api/content/series?page=1&limit=12&status=published</code></pre>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "data": [
+      {
+        "id": "series-uuid",
+        "title": "Series Title",
+        "status": "published",
+        "year": 2025,
+        "totalSeasons": null,
+        "totalEpisodes": null,
+        "language": "English",
+        "rating": "PG-13",
+        "genres": ["Action", "Comedy"],
+        "posterUrl": "https://cdn.example.com/posters/series-uuid.jpg",
+        "backdropUrl": "https://cdn.example.com/backdrops/series-uuid.jpg",
+        "createdAt": "2025-01-01T00:00:00.000Z"
+      }
+    ],
+    "pagination": {
+      "page": 1,
+      "limit": 12,
+      "total": 100,
+      "totalPages": 9
+    }
+  }
+}</code></pre>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">GET</span>
+                        <span class="endpoint-path">/api/content/series/:id</span>
+                    </div>
+                    <div class="endpoint-description">Get detailed series information by ID with nested seasons and episodes</div>
+                    
+                    <h4>Example:</h4>
+                    <pre><code class="language-bash">GET /api/content/series/series-uuid</code></pre>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "id": "series-uuid",
+    "title": "Series Title",
+    "slug": "series-title",
+    "description": "Series description",
+    "shortDescription": "Short description",
+    "year": 2025,
+    "releaseDate": "2025-12-18",
+    "isReleased": false,
+    "contentType": "free",
+    "rentalPrice24h": null,
+    "rentalPrice36h": null,
+    "rentalPrice72h": null,
+    "rentalPrice96h": null,
+    "rentalPrice168h": null,
+    "metaTitle": null,
+    "metaDescription": null,
+    "metaKeywords": null,
+    "status": "published",
+    "processingStatus": "pending",
+    "createdBy": "user-uuid",
+    "updatedBy": null,
+    "createdAt": "2025-12-18T10:02:29.009Z",
+    "updatedAt": "2025-12-18T10:02:29.009Z",
+    "language": {
+      "name": "English",
+      "code": "en",
+      "nativeName": "English"
+    },
+    "rating": {
+      "name": "PG-13",
+      "description": "Parents Strongly Cautioned",
+      "minAge": 13
+    },
+    "genres": ["Action", "Comedy"],
+    "directors": [
+      {
+        "id": "director-uuid",
+        "name": "Director Name",
+        "slug": "director-name"
+      }
+    ],
+    "cast": [
+      {
+        "id": "actor-uuid",
+        "name": "Actor Name",
+        "character": "Character Name"
+      }
+    ],
+    "producers": [
+      {
+        "id": "producer-uuid",
+        "name": "Producer Name",
+        "slug": "producer-name"
+      }
+    ],
+    "posterUrl": "https://cdn.example.com/posters/series-uuid.jpg",
+    "backdropUrl": "https://cdn.example.com/backdrops/series-uuid.jpg",
+    "heroUrl": "https://cdn.example.com/hero/series-uuid.jpg",
+    "titleImageUrl": "https://cdn.example.com/title-images/series-uuid.jpg",
+    "trailerUrl": "https://videodelivery.net/.../manifest/video.m3u8",
+    "seasons": [
+      {
+        "id": "season-uuid",
+        "seriesId": "series-uuid",
+        "seasonNumber": 1,
+        "title": "Season 1",
+        "description": "Season description",
+        "year": 2025,
+        "releaseDate": "2025-12-18",
+        "isReleased": false,
+        "status": "published",
+        "episodes": [
+          {
+            "id": "episode-uuid",
+            "seasonId": "season-uuid",
+            "episodeNumber": 1,
+            "title": "Episode 1",
+            "description": "Episode description",
+            "shortDescription": "Short description",
+            "releaseDate": "2025-12-18",
+            "isReleased": false,
+            "contentType": "free",
+            "rentalPrice24h": null,
+            "rentalPrice36h": null,
+            "rentalPrice72h": null,
+            "rentalPrice96h": null,
+            "rentalPrice168h": null,
+            "status": "published"
+          }
+        ]
+      }
+    ]
+  }
+}</code></pre>
+                    <div class="info-box">
+                        <strong>Note:</strong> This endpoint returns complete series information including nested seasons and episodes. Only published episodes are included in the response. The <code>language</code> and <code>rating</code> objects are simplified (no IDs). Genres are returned as an array of strings. Image URLs (<code>posterUrl</code>, <code>backdropUrl</code>, <code>heroUrl</code>, <code>titleImageUrl</code>) point to the primary images. The <code>trailerUrl</code> is the playback URL for the series trailer if available. Use the pricing endpoint to get available rental price tiers for episodes.
+                    </div>
+                </div>
+            </section>
+
             <!-- Content Service: Reels API -->
             <section id="reels-api" class="section">
                 <h2>Reels API</h2>
@@ -2442,7 +2640,7 @@ GET /api/content/sections?context=home&platform=tv&showInactive=true</code></pre
           "distance": 30
         }
       },
-      "dataSourceType": "query", // or "manual"
+      "dataSourceType": "query", // "manual" | "query" | "trending"
       "movies": [
         {
           "id": "movie-456",
@@ -2459,7 +2657,8 @@ GET /api/content/sections?context=home&platform=tv&showInactive=true</code></pre
           "titleImageUrl": "https://cdn.example.com/title-images/movie-456.jpg",
           "heroUrl": "https://cdn.example.com/hero/movie-456.jpg",
           "posterCleanUrl": "https://cdn.example.com/posters-clean/movie-456.jpg",
-          "backdropCleanUrl": "https://cdn.example.com/backdrops-clean/movie-456.jpg"
+          "backdropCleanUrl": "https://cdn.example.com/backdrops-clean/movie-456.jpg",
+          "contentType": "movie" // "movie" | "series" - indicates the type of content
         }
       ],
       "queryConfig": {
@@ -2473,6 +2672,64 @@ GET /api/content/sections?context=home&platform=tv&showInactive=true</code></pre
           "direction": "desc"
         },
         "limit": 20
+      }
+    },
+    {
+      "id": "section-124",
+      "slug": "trending-now",
+      "title": "Trending Now",
+      "description": "Popular content this week",
+      "platform": "web",
+      "context": "home",
+      "sectionType": "carousel",
+      "displayOrder": 1,
+      "priority": 0,
+      "isActive": true,
+      "showViewAll": true,
+      "dataSourceType": "trending",
+      "movies": [
+        {
+          "id": "movie-789",
+          "title": "Trending Movie",
+          "slug": "trending-movie",
+          "description": "Movie description",
+          "year": 2024,
+          "duration": 120,
+          "language": "English",
+          "rating": "PG-13",
+          "genres": ["Action", "Thriller"],
+          "posterUrl": "https://cdn.example.com/posters/movie-789.jpg",
+          "backdropUrl": "https://cdn.example.com/backdrops/movie-789.jpg",
+          "titleImageUrl": "https://cdn.example.com/title-images/movie-789.jpg",
+          "heroUrl": "https://cdn.example.com/hero/movie-789.jpg",
+          "posterCleanUrl": "https://cdn.example.com/posters-clean/movie-789.jpg",
+          "backdropCleanUrl": "https://cdn.example.com/backdrops-clean/movie-789.jpg",
+          "contentType": "movie"
+        },
+        {
+          "id": "series-123",
+          "title": "Trending Series",
+          "slug": "trending-series",
+          "description": "Series description",
+          "year": 2024,
+          "duration": null,
+          "language": "English",
+          "rating": "PG-13",
+          "genres": ["Drama", "Thriller"],
+          "posterUrl": "https://cdn.example.com/posters/series-123.jpg",
+          "backdropUrl": "https://cdn.example.com/backdrops/series-123.jpg",
+          "titleImageUrl": "https://cdn.example.com/title-images/series-123.jpg",
+          "heroUrl": "https://cdn.example.com/hero/series-123.jpg",
+          "posterCleanUrl": "https://cdn.example.com/posters-clean/series-123.jpg",
+          "backdropCleanUrl": "https://cdn.example.com/backdrops-clean/series-123.jpg",
+          "contentType": "series"
+        }
+      ],
+      "queryConfig": {
+        "limit": 20,
+        "timeWindow": "7d",
+        "minWatchDuration": 60,
+        "contentFilter": "both"
       }
     }
   ]
@@ -2545,6 +2802,75 @@ GET /api/content/sections?context=home&platform=tv&showInactive=true</code></pre
                             </tr>
                         </tbody>
                     </table>
+                    <h4>Data Source Types:</h4>
+                    <p>The <code>dataSourceType</code> field indicates how section content is populated:</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Value</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>manual</code></td>
+                                <td>Content is manually curated via <code>screenSectionItems</code>. Items are explicitly added by administrators.</td>
+                            </tr>
+                            <tr>
+                                <td><code>query</code></td>
+                                <td>Content is dynamically generated using <code>queryConfig</code> filters and sorting rules. Supports genre, year, status, and other filters.</td>
+                            </tr>
+                            <tr>
+                                <td><code>trending</code></td>
+                                <td>Content is calculated based on trending algorithm using stream session data. Uses <code>queryConfig</code> for trending parameters (timeWindow, limit, contentFilter).</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h4>Trending Configuration:</h4>
+                    <p>For sections with <code>dataSourceType: "trending"</code>, the <code>queryConfig</code> supports the following parameters:</p>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Default</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>limit</code></td>
+                                <td>number</td>
+                                <td>20</td>
+                                <td>Maximum number of items to return</td>
+                            </tr>
+                            <tr>
+                                <td><code>timeWindow</code></td>
+                                <td>string</td>
+                                <td>"7d"</td>
+                                <td>Time window for trending calculation: <code>"24h"</code>, <code>"7d"</code>, <code>"30d"</code>, or <code>"all"</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>minWatchDuration</code></td>
+                                <td>number</td>
+                                <td>60</td>
+                                <td>Minimum watch duration in seconds to count a view</td>
+                            </tr>
+                            <tr>
+                                <td><code>contentFilter</code></td>
+                                <td>string</td>
+                                <td>"both"</td>
+                                <td>Filter content type: <code>"movie"</code>, <code>"series"</code>, or <code>"both"</code></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h4>Content Type Field:</h4>
+                    <p>Each item in the <code>movies</code> array includes a <code>contentType</code> field that indicates whether the item is a movie or series:</p>
+                    <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
+                        <li><code>"movie"</code> - Standalone movies, short films, documentaries, BTS content, or reels</li>
+                        <li><code>"series"</code> - TV series/shows</li>
+                    </ul>
+                    <p>This field helps frontend applications differentiate between content types and handle navigation/routing appropriately.</p>
                     <div class="info-box">
                         <strong>Notes:</strong>
                         <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
@@ -2554,7 +2880,9 @@ GET /api/content/sections?context=home&platform=tv&showInactive=true</code></pre
                             <li>When <code>maxContentRating</code> is provided, movies are filtered by content rating. Only movies where the content rating's <code>minAge</code> is &lt;= the maxContentRating's <code>minAge</code> (or <code>IS NULL</code>) are included. This filter is applied at the movie level, not the section level. The parameter accepts either a content rating ID (UUID) or name (e.g., "PG-13", "R").</li>
                             <li>When <code>showInactive=true</code>, sections with <code>isActive=false</code> are included in the response</li>
                             <li>For query-based sections, if query execution fails, the section will have an empty <code>movies</code> array and may include a <code>queryError</code> field</li>
+                            <li>For trending sections, content is calculated based on stream session data (unique viewers, watch duration, completion rate). If trending calculation fails, the section will have an empty <code>movies</code> array and may include a <code>queryError</code> field</li>
                             <li>For manual sections, movies are always included (filtered by maxContentRating if applicable)</li>
+                            <li>Series items in sections will have <code>duration: null</code> since series don't have a fixed duration</li>
                         </ul>
                     </div>
                     <h4>Style Configuration:</h4>
@@ -2636,6 +2964,150 @@ GET /api/content/sections?context=home&platform=tv&showInactive=true</code></pre
                             <li><strong>Web/TV:</strong> Returns <code>LARGE</code> resolution images for <code>posterUrl</code> and <code>backdropUrl</code></li>
                         </ul>
                         Falls back to <code>ORIGINAL</code> if the preferred resolution is not available. See <a href="docs/section-style-config.md" target="_blank">Section Style Configuration Guide</a> for complete documentation.
+                    </div>
+                </div>
+            </section>
+
+            <!-- Content Service: Trending API -->
+            <section id="trending-api" class="section">
+                <h2>Trending API</h2>
+                <p>Get trending content based on viewership metrics. Supports filtering by content type (movies, series, or both).</p>
+                <div class="info-box" style="margin-bottom: 1.5rem;">
+                    <strong>Route Prefix:</strong> All Content Service routes are prefixed with <code>/api/content/</code>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">GET</span>
+                        <span class="endpoint-path">/api/content/trending</span>
+                    </div>
+                    <div class="endpoint-description">Get trending content based on viewership metrics (unique viewers, watch duration, completion rate)</div>
+                    <h4>Query Parameters:</h4>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Required</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>type</code></td>
+                                <td>string</td>
+                                <td>No</td>
+                                <td>Filter by content type: <code>movie</code>, <code>series</code>, or <code>both</code> (default: <code>both</code>)</td>
+                            </tr>
+                            <tr>
+                                <td><code>limit</code></td>
+                                <td>number</td>
+                                <td>No</td>
+                                <td>Number of results (default: 20, max: 100)</td>
+                            </tr>
+                            <tr>
+                                <td><code>timeWindow</code></td>
+                                <td>string</td>
+                                <td>No</td>
+                                <td>Time window for trending calculation: <code>24h</code>, <code>7d</code>, <code>30d</code>, or <code>all</code> (default: <code>7d</code>)</td>
+                            </tr>
+                            <tr>
+                                <td><code>minWatchDuration</code></td>
+                                <td>number</td>
+                                <td>No</td>
+                                <td>Minimum watch duration in seconds to count a view (default: 60)</td>
+                            </tr>
+                            <tr>
+                                <td><code>platform</code></td>
+                                <td>string</td>
+                                <td>No</td>
+                                <td>Platform filter: <code>mobile</code>, <code>web</code>, or <code>tv</code> (default: <code>mobile</code>). Affects image resolution selection.</td>
+                            </tr>
+                            <tr>
+                                <td><code>maxContentRating</code></td>
+                                <td>string</td>
+                                <td>No</td>
+                                <td>Filter by maximum content rating. Provide a content rating ID (UUID) or name (e.g., "PG-13"). Only content where the content rating's <code>minAge</code> is &lt;= the maxContentRating's <code>minAge</code> (or <code>IS NULL</code>) will be returned.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h4>Examples:</h4>
+                    <pre><code class="language-bash"># Get trending movies only
+GET /api/content/trending?type=movie&limit=10
+
+# Get trending series only
+GET /api/content/trending?type=series&timeWindow=7d
+
+# Get trending content (both movies and series)
+GET /api/content/trending?type=both&limit=20&platform=web
+
+# Get trending with content rating filter
+GET /api/content/trending?type=movie&maxContentRating=PG-13&timeWindow=30d</code></pre>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": [
+    {
+      "id": "movie-uuid",
+      "title": "Trending Movie",
+      "slug": "trending-movie",
+      "description": "Movie description",
+      "year": 2024,
+      "duration": 120,
+      "language": "English",
+      "rating": "PG-13",
+      "genres": ["Action", "Thriller"],
+      "posterUrl": "https://cdn.example.com/posters/movie-uuid.jpg",
+      "backdropUrl": "https://cdn.example.com/backdrops/movie-uuid.jpg",
+      "titleImageUrl": "https://cdn.example.com/title-images/movie-uuid.jpg",
+      "heroUrl": "https://cdn.example.com/hero/movie-uuid.jpg",
+      "posterCleanUrl": "https://cdn.example.com/posters-clean/movie-uuid.jpg",
+      "backdropCleanUrl": "https://cdn.example.com/backdrops-clean/movie-uuid.jpg",
+      "contentType": "movie"
+    },
+    {
+      "id": "series-uuid",
+      "title": "Trending Series",
+      "slug": "trending-series",
+      "description": "Series description",
+      "year": 2024,
+      "duration": null,
+      "language": "English",
+      "rating": "PG-13",
+      "genres": ["Drama", "Thriller"],
+      "posterUrl": "https://cdn.example.com/posters/series-uuid.jpg",
+      "backdropUrl": "https://cdn.example.com/backdrops/series-uuid.jpg",
+      "titleImageUrl": "https://cdn.example.com/title-images/series-uuid.jpg",
+      "heroUrl": "https://cdn.example.com/hero/series-uuid.jpg",
+      "posterCleanUrl": "https://cdn.example.com/posters-clean/series-uuid.jpg",
+      "backdropCleanUrl": "https://cdn.example.com/backdrops-clean/series-uuid.jpg",
+      "contentType": "series"
+    }
+  ]
+}</code></pre>
+                    <div class="info-box" style="margin-top: 1rem;">
+                        <strong>Trending Algorithm:</strong> Content is ranked by a trending score calculated from:
+                        <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
+                            <li><strong>Unique Viewers:</strong> Number of distinct users who watched (weight: 2x)</li>
+                            <li><strong>Total Watch Hours:</strong> Sum of all watch durations (weight: 1x)</li>
+                            <li><strong>Completion Bonus:</strong> Views where user watched ≥90% of content (weight: 5x)</li>
+                        </ul>
+                        <p style="margin-top: 0.5rem;"><strong>Formula:</strong> Trending Score = (Unique Viewers × 2) + (Total Watch Hours) + (Completions × 5)</p>
+                    </div>
+                    <div class="info-box" style="margin-top: 1rem;">
+                        <strong>Content Type Field:</strong> Each item includes a <code>contentType</code> field that indicates whether the item is a movie or series:
+                        <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
+                            <li><code>"movie"</code> - Standalone movies, short films, documentaries, BTS content, or reels</li>
+                            <li><code>"series"</code> - TV series/shows (note: series will have <code>duration: null</code> since they don't have a fixed duration)</li>
+                        </ul>
+                    </div>
+                    <div class="info-box" style="margin-top: 1rem;">
+                        <strong>Platform-Specific Images:</strong> The API automatically returns appropriate image resolutions based on the platform parameter:
+                        <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
+                            <li><strong>Mobile:</strong> Returns <code>MEDIUM</code> resolution images</li>
+                            <li><strong>Web/TV:</strong> Returns <code>LARGE</code> resolution images</li>
+                        </ul>
+                        Falls back to <code>ORIGINAL</code> if the preferred resolution is not available.
                     </div>
                 </div>
             </section>
@@ -3691,6 +4163,51 @@ async function getReels(page = 1, limit = 20) {
   return response.json();
 }
 
+// Get series (public endpoint)
+async function getSeries(page = 1, limit = 20, status = 'published') {
+  const response = await fetch(
+    `${API_BASE_URL}/api/content/series?page=${page}&limit=${limit}&status=${status}`
+  );
+  return response.json();
+}
+
+// Get series by ID (public endpoint)
+async function getSeriesById(seriesId) {
+  const response = await fetch(
+    `${API_BASE_URL}/api/content/series/${seriesId}`
+  );
+  return response.json();
+}
+
+// Get trending content (public endpoint)
+async function getTrending(options = {}) {
+  const {
+    type = 'both', // 'movie', 'series', or 'both'
+    limit = 20,
+    timeWindow = '7d', // '24h', '7d', '30d', or 'all'
+    minWatchDuration = 60,
+    platform = 'mobile', // 'mobile', 'web', or 'tv'
+    maxContentRating = null,
+  } = options;
+  
+  const params = new URLSearchParams({
+    type,
+    limit: limit.toString(),
+    timeWindow,
+    minWatchDuration: minWatchDuration.toString(),
+    platform,
+  });
+  
+  if (maxContentRating) {
+    params.append('maxContentRating', maxContentRating);
+  }
+  
+  const response = await fetch(
+    `${API_BASE_URL}/api/content/trending?${params.toString()}`
+  );
+  return response.json();
+}
+
 // Get sections for a context and platform
 async function getSections(context = 'home', platform = 'web', options = {}) {
   const { maxContentRating, showInactive } = options;
@@ -3711,6 +4228,33 @@ async function getSections(context = 'home', platform = 'web', options = {}) {
     `${API_BASE_URL}/api/content/sections?${params.toString()}`
   );
   return response.json();
+}
+
+// Example: Handle sections with different content types
+function renderSection(section) {
+  const { dataSourceType, movies, title } = section;
+  
+  // Handle different data source types
+  if (dataSourceType === 'trending') {
+    console.log(`Rendering trending section: ${title}`);
+  } else if (dataSourceType === 'query') {
+    console.log(`Rendering query-based section: ${title}`);
+  } else if (dataSourceType === 'manual') {
+    console.log(`Rendering manually curated section: ${title}`);
+  }
+  
+  // Render items with content type awareness
+  movies.forEach(item => {
+    const { contentType, id, title, slug } = item;
+    
+    if (contentType === 'movie') {
+      // Navigate to movie detail page
+      console.log(`Movie: ${title} - /movies/${slug}`);
+    } else if (contentType === 'series') {
+      // Navigate to series detail page
+      console.log(`Series: ${title} - /series/${slug}`);
+    }
+  });
 }
 
 // Get home sections (backward compatibility - uses new endpoint)
