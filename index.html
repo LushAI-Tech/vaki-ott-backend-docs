@@ -1703,7 +1703,7 @@ GET /api/payments/pricing/episode/episode-uuid</code></pre>
                         <span class="badge badge-get">GET</span>
                         <span class="endpoint-path">/api/payments/rental-status/:contentId</span>
                     </div>
-                    <div class="endpoint-description">Get rental status for specific content</div>
+                    <div class="endpoint-description">Get rental status for specific content (movie, series, season, or episode)</div>
                     <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span></p>
                     <h4>Query Parameters:</h4>
                     <table>
@@ -1720,31 +1720,85 @@ GET /api/payments/pricing/episode/episode-uuid</code></pre>
                                 <td><code>type</code></td>
                                 <td>string</td>
                                 <td>No</td>
-                                <td>Content type: <code>movie</code>, <code>series</code>, or <code>episode</code> (default: <code>movie</code>)</td>
+                                <td>Content type: <code>movie</code>, <code>series</code>, <code>season</code>, or <code>episode</code> (default: <code>movie</code>)</td>
                             </tr>
                         </tbody>
                     </table>
                     <h4>Example:</h4>
                     <pre><code class="language-bash">GET /api/payments/rental-status/movie-uuid?type=movie
 GET /api/payments/rental-status/series-uuid?type=series
+GET /api/payments/rental-status/season-uuid?type=season
 GET /api/payments/rental-status/episode-uuid?type=episode</code></pre>
                     <h4>Response:</h4>
                     <pre><code class="language-json">{
   "success": true,
   "data": {
-    "contentId": "movie-uuid",
-    "mediaType": "movie",
+    "contentId": "series-uuid",
+    "mediaType": "series", // "movie" | "series" | "episode" | "season"
     "contentType": "rent", // "free" | "rent" | "subscription"
     "hasActiveRental": true,
+    "requiresRental": true,
+    "rentalPrice": 5000, // base 24h price (for backwards compatibility)
     "rental": {
       "id": "rental-uuid",
-      "rentedAt": "2025-01-15T10:30:00.000Z",
       "expiresAt": "2025-01-17T10:30:00.000Z",
-      "isExpired": false,
-      "timeRemaining": 172800 // seconds remaining
+      "gracePeriodEndsAt": "2025-01-17T11:30:00.000Z",
+      "remainingHours": 12,
+      "isInGracePeriod": false
+    },
+    "pricingHierarchy": {
+      "series": {
+        "rentalPrice24h": 5000,
+        "rentalPrice36h": 7000,
+        "rentalPrice72h": 10000,
+        "rentalPrice96h": 12000,
+        "rentalPrice168h": 15000,
+        "hasActiveRental": true,
+        "rentalType": "series", // which level grants access: "series" | "season" | "episode" | null
+        "rentalId": "rental-uuid"
+      },
+      "seasons": [
+        {
+          "seasonId": "season-uuid-1",
+          "seasonNumber": 1,
+          "title": "Season 1",
+          "rentalPrice24h": 3000,   // season price or inherited from series
+          "rentalPrice36h": 4000,
+          "rentalPrice72h": 6000,
+          "rentalPrice96h": 7500,
+          "rentalPrice168h": 9000,
+          "hasActiveRental": true,
+          "rentalType": "season",   // "season" if directly rented, "series" if inherited
+          "rentalId": "season-rental-uuid",
+          "episodes": [
+            {
+              "episodeId": "episode-uuid-1",
+              "episodeNumber": 1,
+              "title": "Episode 1",
+              "rentalPrice24h": 500,    // episode-specific or inherited from season/series
+              "rentalPrice36h": 700,
+              "rentalPrice72h": 1000,
+              "rentalPrice96h": 1200,
+              "rentalPrice168h": 1500,
+              "hasActiveRental": true,
+              "rentalType": "season",   // "episode" | "season" | "series" | null
+              "rentalId": "season-rental-uuid"
+            }
+          ]
+        }
+      ]
     }
   }
 }</code></pre>
+                    <div class="info-box" style="margin-top: 1rem;">
+                        <strong>Notes:</strong>
+                        <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
+                            <li>When <code>type=series</code>, <code>pricingHierarchy</code> includes pricing and rental state for the series, all seasons, and all episodes.</li>
+                            <li><code>rentalType</code> and <code>rentalId</code> indicate which level (series / season / episode) grants access for that item.</li>
+                            <li>Season rentals automatically grant access to all episodes in that season; series rentals grant access to all seasons and episodes.</li>
+                            <li>For <code>type=movie</code> and <code>type=episode</code>, the response remains backward compatible and may not include <code>pricingHierarchy</code>.</li>
+                        </ul>
+                    </div>
                 </div>
 
                 <div class="endpoint">
@@ -2551,7 +2605,7 @@ GET /api/content/reels?status=published&maxContentRating=rating-uuid-123</code><
             <!-- Content Service: Sections API -->
             <section id="sections-api" class="section">
                 <h2>Sections API</h2>
-                <p>Get sections with populated movie data for different contexts and platforms. Supports multiple contexts: home, movies, short films, documentaries, bts, search, and profile.</p>
+                <p>Get sections with populated movie data for different contexts and platforms. Supports multiple contexts: home, movies, short films, documentaries, bts, search, profile, and series.</p>
 
                 <div class="info-box warning">
                     <strong>Deprecated:</strong> The <code>/api/content/home</code> endpoint is deprecated. Use <code>/api/content/sections?context=home&platform=...</code> instead. The old endpoint still works for backward compatibility but redirects to the new endpoint.
@@ -2578,7 +2632,7 @@ GET /api/content/reels?status=published&maxContentRating=rating-uuid-123</code><
                                 <td><code>context</code></td>
                                 <td>string</td>
                                 <td>Yes</td>
-                                <td>Section context: <code>home</code>, <code>movies</code>, <code>short_films</code> (or <code>short-films</code>), <code>documentaries</code>, <code>bts</code>, <code>search</code>, or <code>profile</code></td>
+                                <td>Section context: <code>home</code>, <code>movies</code>, <code>short_films</code> (or <code>short-films</code>), <code>documentaries</code>, <code>bts</code>, <code>search</code>, <code>profile</code>, or <code>series</code></td>
                             </tr>
                             <tr>
                                 <td><code>platform</code></td>
@@ -2799,6 +2853,10 @@ GET /api/content/sections?context=home&platform=tv&showInactive=true</code></pre
                             <tr>
                                 <td><code>profile</code></td>
                                 <td>Profile page sections</td>
+                            </tr>
+                            <tr>
+                                <td><code>series</code></td>
+                                <td>Series page sections</td>
                             </tr>
                         </tbody>
                     </table>
@@ -3115,9 +3173,17 @@ GET /api/content/trending?type=movie&maxContentRating=PG-13&timeWindow=30d</code
             <!-- Content Service: Streaming API -->
             <section id="stream-api" class="section">
                 <h2>Streaming API</h2>
-                <p>Manage streaming sessions for video playback. Supports device-based slot management (one stream per device category: mobile, tablet, TV, web).</p>
+                <p>Manage streaming sessions for video playback. Supports movies and episodes (series content). Features device-based slot management (one stream per device category: mobile, tablet, TV, web).</p>
                 <div class="info-box" style="margin-bottom: 1.5rem;">
                     <strong>Route Prefix:</strong> Streaming routes are mounted at <code>/api/content/stream</code>
+                </div>
+                <div class="info-box" style="margin-bottom: 1.5rem;">
+                    <strong>Content Types Supported:</strong> The streaming API supports both movies and episodes. When starting a stream, provide the <code>contentId</code> which can be either:
+                    <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
+                        <li><strong>Movie ID:</strong> For standalone movies, short films, documentaries, BTS content, or reels</li>
+                        <li><strong>Episode ID:</strong> For individual series episodes</li>
+                    </ul>
+                    The system automatically detects the content type and handles rental access checks accordingly.
                 </div>
                 <!-- <div class="info-box warning" style="margin-bottom: 1.5rem;">
                     <strong>Redis Required:</strong> Streaming functionality requires Redis to be available. If Redis is unavailable, streaming endpoints will return an error.
@@ -3170,11 +3236,13 @@ GET /api/content/trending?type=movie&maxContentRating=PG-13&timeWindow=30d</code
                         <span class="badge badge-post">POST</span>
                         <span class="endpoint-path">/api/content/stream/start</span>
                     </div>
-                    <div class="endpoint-description">Start a new streaming session</div>
+                    <div class="endpoint-description">Start a new streaming session for a movie or episode</div>
                     <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span></p>
                     <h4>Request Body:</h4>
+                    <p>For movies:</p>
                     <pre><code class="language-json">{
-  "contentId": "movie-uuid",
+  "contentId": "movie-uuid", // Movie ID
+  "contentType": "movie", // Optional but recommended - reduces DB queries
   "profileId": "profile-uuid",
   "deviceId": "device-uuid", // required - unique device identifier
   "deviceType": "mobile", // required - "mobile" | "tablet" | "tv" | "web" | "other"
@@ -3182,6 +3250,84 @@ GET /api/content/trending?type=movie&maxContentRating=PG-13&timeWindow=30d</code
   "deviceModel": "iPhone15,2", 
   "appVersion": "1.0.0" 
 }</code></pre>
+                    <p>For episodes:</p>
+                    <pre><code class="language-json">{
+  "contentId": "episode-uuid", // Episode ID
+  "contentType": "episode", // Optional but recommended - reduces DB queries
+  "profileId": "profile-uuid",
+  "deviceId": "device-uuid", // required - unique device identifier
+  "deviceType": "mobile", // required - "mobile" | "tablet" | "tv" | "web" | "other"
+  "deviceName": "iPhone 15 Pro", // required - human-readable device name
+  "deviceModel": "iPhone15,2", 
+  "appVersion": "1.0.0" 
+}</code></pre>
+                    <h4>Request Body Parameters:</h4>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Required</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>contentId</code></td>
+                                <td>string</td>
+                                <td>Yes</td>
+                                <td>UUID of the content (movie ID or episode ID)</td>
+                            </tr>
+                            <tr>
+                                <td><code>contentType</code></td>
+                                <td>string</td>
+                                <td>No</td>
+                                <td>Content type: <code>"movie"</code> or <code>"episode"</code>. <strong>Recommended:</strong> Include this to reduce database queries. If omitted, the system will auto-detect by checking both tables.</td>
+                            </tr>
+                            <tr>
+                                <td><code>profileId</code></td>
+                                <td>string</td>
+                                <td>No</td>
+                                <td>UUID of the user profile</td>
+                            </tr>
+                            <tr>
+                                <td><code>deviceId</code></td>
+                                <td>string</td>
+                                <td>Yes</td>
+                                <td>Unique device identifier</td>
+                            </tr>
+                            <tr>
+                                <td><code>deviceType</code></td>
+                                <td>string</td>
+                                <td>Yes</td>
+                                <td>Device type: <code>"mobile"</code>, <code>"tablet"</code>, <code>"tv"</code>, <code>"web"</code>, or <code>"other"</code></td>
+                            </tr>
+                            <tr>
+                                <td><code>deviceName</code></td>
+                                <td>string</td>
+                                <td>Yes</td>
+                                <td>Human-readable device name</td>
+                            </tr>
+                            <tr>
+                                <td><code>deviceModel</code></td>
+                                <td>string</td>
+                                <td>No</td>
+                                <td>Device model</td>
+                            </tr>
+                            <tr>
+                                <td><code>appVersion</code></td>
+                                <td>string</td>
+                                <td>No</td>
+                                <td>App version</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="info-box" style="margin-top: 1rem;">
+                        <strong>Performance Tip:</strong> Including <code>contentType</code> in the request body is optional but recommended. When provided, the system makes a single targeted database query to the appropriate table (movies or episodes), reducing database load and improving response time. If omitted, the system will auto-detect by checking both tables (requires two queries).
+                    </div>
+                    <div class="info-box" style="margin-top: 1rem;">
+                        <strong>Content Type Detection:</strong> The system automatically detects whether <code>contentId</code> is a movie or episode. If <code>contentType</code> is provided, it uses that to make a targeted query. If not provided, it checks both tables. For episodes, rental access is checked at the episode level.
+                    </div>
                     <h4>Response:</h4>
                     <pre><code class="language-json">{
   "success": true,
@@ -3210,7 +3356,10 @@ GET /api/content/trending?type=movie&maxContentRating=PG-13&timeWindow=30d</code
                         <strong>Device Categories:</strong> The system limits one active stream per device category (mobile, tablet, TV, web). If you try to start a stream on a device category that's already in use, you'll receive a <code>409 Conflict</code> error with details about the blocking session.
                     </div>
                     <div class="info-box" style="margin-top: 1rem;">
-                        <strong>Rental Access:</strong> If the content requires a rental and the user doesn't have an active rental, the endpoint returns <code>403 Forbidden</code> with rental information. You should redirect the user to the payment flow.
+                        <strong>Rental Access:</strong> If the content requires a rental and the user doesn't have an active rental, the endpoint returns <code>403 Forbidden</code> with rental information. You should redirect the user to the payment flow. For episodes, rental access is checked at the episode level (not the series level).
+                    </div>
+                    <div class="info-box" style="margin-top: 1rem;">
+                        <strong>Content Type Detection:</strong> The system automatically detects whether <code>contentId</code> is a movie or episode by checking both the <code>movies</code> and <code>episodes</code> tables. The <code>contentType</code> field in the stream session will be set to either <code>"movie"</code> or <code>"episode"</code> accordingly.
                     </div>
                 </div>
 
@@ -3377,13 +3526,26 @@ GET /api/content/trending?type=movie&maxContentRating=PG-13&timeWindow=30d</code
         "id": "session-uuid",
         "contentId": "movie-uuid",
         "contentTitle": "Movie Title",
-        "contentType": "movie",
+        "contentType": "movie", // "movie" or "episode"
         "deviceName": "iPhone 15 Pro",
         "deviceType": "mobile",
         "startedAt": "2025-01-15T10:30:00.000Z",
         "endedAt": "2025-01-15T11:30:00.000Z",
         "watchDuration": 3600,
         "maxPosition": 3600,
+        "endReason": "user_stopped"
+      },
+      {
+        "id": "session-uuid-2",
+        "contentId": "episode-uuid",
+        "contentTitle": "Episode Title",
+        "contentType": "episode",
+        "deviceName": "iPad Pro",
+        "deviceType": "tablet",
+        "startedAt": "2025-01-15T12:00:00.000Z",
+        "endedAt": "2025-01-15T12:45:00.000Z",
+        "watchDuration": 2700,
+        "maxPosition": 2700,
         "endReason": "user_stopped"
       }
     ],
@@ -3412,9 +3574,9 @@ GET /api/content/trending?type=movie&maxContentRating=PG-13&timeWindow=30d</code
       {
         "contentId": "movie-uuid",
         "contentTitle": "Movie Title",
-        "contentType": "movie", // Content type: "movie", "series", "episode", etc.
+        "contentType": "movie", // Content type: "movie" or "episode"
         "progress": 1234, // Last viewed position in seconds
-        "duration": 5400, // Total duration in seconds
+        "duration": 5400, // Total duration in seconds (for movies) or from stream video (for episodes)
         "percentageCompletion": 23, // Completion percentage (0-100)
         "thumbnailUrl": "https://cdn.example.com/posters/movie-uuid.jpg", // Primary poster URL (same as posterUrl)
         "posterUrl": "https://cdn.example.com/posters/movie-uuid.jpg", // Primary poster URL
@@ -3423,6 +3585,21 @@ GET /api/content/trending?type=movie&maxContentRating=PG-13&timeWindow=30d</code
         "deviceType": "mobile", // null if not currently active
         "deviceCategory": "mobile", // null if not currently active
         "lastWatchedAt": "2025-01-15T10:30:00.000Z"
+      },
+      {
+        "contentId": "episode-uuid",
+        "contentTitle": "Episode 1: The Beginning",
+        "contentType": "episode",
+        "progress": 1800, // Last viewed position in seconds
+        "duration": 3600, // Total duration in seconds (from stream video)
+        "percentageCompletion": 50,
+        "thumbnailUrl": "https://cdn.example.com/posters/series-uuid.jpg", // Series poster URL
+        "posterUrl": "https://cdn.example.com/posters/series-uuid.jpg",
+        "backdropUrl": "https://cdn.example.com/backdrops/series-uuid.jpg",
+        "deviceName": "iPad Pro",
+        "deviceType": "tablet",
+        "deviceCategory": "tablet",
+        "lastWatchedAt": "2025-01-15T14:20:00.000Z"
       }
     ]
   }
@@ -3431,11 +3608,14 @@ GET /api/content/trending?type=movie&maxContentRating=PG-13&timeWindow=30d</code
                         <strong>Notes:</strong>
                         <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
                             <li>Returns both active sessions (from Redis) and historical sessions (from PostgreSQL)</li>
+                            <li>Supports both movies and episodes - the <code>contentType</code> field indicates the type</li>
                             <li>For active sessions, uses current position from Redis</li>
                             <li>For historical sessions, uses last position from the most recent session</li>
                             <li>Only includes content with progress > 30 seconds and completion < 95%</li>
                             <li>Sorted by most recently watched</li>
                             <li>If Redis is unavailable, falls back to historical data only</li>
+                            <li>For episodes, duration is retrieved from the stream video record (not from the episode table)</li>
+                            <li>For episodes, thumbnail/poster URLs are from the parent series</li>
                         </ul>
                     </div>
                 </div>
@@ -4513,11 +4693,15 @@ async function canStartStream(deviceType) {
   return response.json();
 }
 
-async function startStream(contentId, deviceInfo, profileId) {
+// Start stream for a movie or episode
+// contentId can be either a movie ID or an episode ID
+// contentType is optional but recommended for better performance
+async function startStream(contentId, contentType, deviceInfo, profileId) {
   const response = await authenticatedFetch('/api/content/stream/start', {
     method: 'POST',
     body: JSON.stringify({
-      contentId,
+      contentId, // Can be movie-uuid or episode-uuid
+      contentType, // Optional but recommended: "movie" or "episode" - reduces DB queries
       profileId,
       deviceId: deviceInfo.deviceId,
       deviceType: deviceInfo.deviceType,
@@ -4527,6 +4711,16 @@ async function startStream(contentId, deviceInfo, profileId) {
     }),
   });
   return response.json();
+}
+
+// Start stream for a movie
+async function startMovieStream(movieId, deviceInfo, profileId) {
+  return startStream(movieId, 'movie', deviceInfo, profileId);
+}
+
+// Start stream for an episode
+async function startEpisodeStream(episodeId, deviceInfo, profileId) {
+  return startStream(episodeId, 'episode', deviceInfo, profileId);
 }
 
 async function sendHeartbeat(sessionToken, position, quality, bufferHealth) {
@@ -4586,7 +4780,10 @@ async function getContinueWatching() {
 let heartbeatInterval = null;
 let currentSessionToken = null;
 
-async function playContent(contentId, deviceInfo, profileId) {
+// Play content (movie or episode)
+// contentId can be either a movie ID or an episode ID
+// contentType is optional but recommended for better performance
+async function playContent(contentId, contentType, deviceInfo, profileId) {
   try {
     // Step 1: Check if can start stream
     const canStart = await canStartStream(deviceInfo.deviceType);
@@ -4595,7 +4792,9 @@ async function playContent(contentId, deviceInfo, profileId) {
     }
 
     // Step 2: Start streaming session
-    const startResponse = await startStream(contentId, deviceInfo, profileId);
+    // Include contentType for better performance (reduces DB queries)
+    // If contentType is not provided, system will auto-detect
+    const startResponse = await startStream(contentId, contentType, deviceInfo, profileId);
     if (!startResponse.success) {
       if (startResponse.error === 'RENTAL_REQUIRED') {
         // Redirect to payment flow
@@ -4638,6 +4837,16 @@ async function playContent(contentId, deviceInfo, profileId) {
     console.error('Streaming error:', error);
     throw error;
   }
+}
+
+// Example: Play a movie
+async function playMovie(movieId, deviceInfo, profileId) {
+  return playContent(movieId, 'movie', deviceInfo, profileId);
+}
+
+// Example: Play an episode
+async function playEpisode(episodeId, deviceInfo, profileId) {
+  return playContent(episodeId, 'episode', deviceInfo, profileId);
 }
 
 async function stopPlayback() {
