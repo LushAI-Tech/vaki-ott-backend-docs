@@ -1462,7 +1462,7 @@ GET /api/users/me/profiles/:profileId/watch-later/check?contentType=episode&epis
             <!-- Payment Service: Payments & Rentals API -->
             <section id="payments-api" class="section">
                 <h2>Payments & Rentals API</h2>
-                <p>Handle payment processing for content rentals (movies, series, episodes). Supports RazorPay and Apple Pay gateways.</p>
+                <p>Handle payment processing for content rentals and subscriptions. Supports RazorPay and Apple Pay gateways.</p>
                 <div class="info-box" style="margin-bottom: 1.5rem;">
                     <strong>Route Prefix:</strong> All Payment Service routes are prefixed with <code>/api/payments</code>
                 </div>
@@ -1560,6 +1560,213 @@ GET /api/payments/pricing/episode/episode-uuid</code></pre>
     "currency": "INR"
   }
 }</code></pre>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">GET</span>
+                        <span class="endpoint-path">/api/payments/subscription/plans</span>
+                    </div>
+                    <div class="endpoint-description">Get available subscription plans</div>
+                    <p><strong>Access:</strong> Public (no authentication required)</p>
+                    <h4>Plan Card Design (Suggested)</h4>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Field</th>
+                                <th>Type</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>planId</code></td>
+                                <td>string</td>
+                                <td>Use <code>plans[].code</code> (or <code>plans[].id</code>) from API response</td>
+                            </tr>
+                            <tr>
+                                <td><code>name</code></td>
+                                <td>string</td>
+                                <td>Display title (e.g., “Monthly”)</td>
+                            </tr>
+                            <tr>
+                                <td><code>price</code></td>
+                                <td>number</td>
+                                <td>Show formatted price (e.g., ₹299 / month)</td>
+                            </tr>
+                            <tr>
+                                <td><code>billingCycle</code></td>
+                                <td>string</td>
+                                <td>Derived from <code>durationDays</code> (30 → monthly, 365 → yearly)</td>
+                            </tr>
+                            <tr>
+                                <td><code>ctaLabel</code></td>
+                                <td>string</td>
+                                <td>“Start Subscription” or “Continue”</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <div class="info-box" style="margin-top: 1rem;">
+                        <strong>UI Notes:</strong>
+                        <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
+                            <li>Highlight the most popular plan (e.g., yearly) with a “Best Value” badge.</li>
+                            <li>Show savings for yearly (e.g., “Save 30% vs monthly”) if desired.</li>
+                            <li>Disable selection if <code>GET /api/payments/subscription/status</code> returns an active subscription.</li>
+                        </ul>
+                    </div>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "plans": [
+      {
+        "id": "plan-uuid-1",
+        "code": "monthly",
+        "name": "Monthly",
+        "durationDays": 30,
+        "priceInr": 29900,
+        "currency": "INR",
+        "description": "Monthly subscription"
+      },
+      {
+        "id": "plan-uuid-2",
+        "code": "yearly",
+        "name": "Yearly",
+        "durationDays": 365,
+        "priceInr": 249900,
+        "currency": "INR",
+        "description": "Yearly subscription"
+      }
+    ]
+  }
+}</code></pre>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-post">POST</span>
+                        <span class="endpoint-path">/api/payments/subscription/create</span>
+                    </div>
+                    <div class="endpoint-description">Create a payment order for a subscription</div>
+                    <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span></p>
+                    <h4>Request Body:</h4>
+                    <pre><code class="language-json">{
+  "planId": "monthly", // plan code or plan id from /subscription/plans
+  "platform": "web" // optional: "ios" | "android" | "web"
+}</code></pre>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "paymentId": "payment-uuid",
+    "amount": 29900,
+    "currency": "INR",
+    "gateway": "razorpay",
+    "gatewayOrderId": "order_xxxxx",
+    "paymentData": {
+      "orderId": "order_xxxxx",
+      "amount": 29900,
+      "currency": "INR",
+      "keyId": "rzp_test_xxxxx"
+    },
+    "plan": {
+      "id": "plan-uuid-1",
+      "code": "monthly",
+      "name": "Monthly",
+      "durationDays": 30,
+      "priceInr": 29900,
+      "currency": "INR"
+    }
+  }
+}</code></pre>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-post">POST</span>
+                        <span class="endpoint-path">/api/payments/subscription/verify</span>
+                    </div>
+                    <div class="endpoint-description">Verify and complete a subscription payment</div>
+                    <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span></p>
+                    <h4>Request Body (RazorPay):</h4>
+                    <pre><code class="language-json">{
+  "paymentId": "payment-uuid",
+  "gatewayOrderId": "order_xxxxx",
+  "gatewayPaymentId": "pay_xxxxx",
+  "gatewaySignature": "signature_xxxxx"
+}</code></pre>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "payment": {
+      "id": "payment-uuid",
+      "userId": "user-uuid",
+      "amount": 29900,
+      "currency": "INR",
+      "gateway": "razorpay",
+      "status": "completed",
+      "paidAt": "2025-01-15T10:30:00.000Z"
+    },
+    "subscription": {
+      "id": "subscription-uuid",
+      "userId": "user-uuid",
+      "paymentId": "payment-uuid",
+      "planId": "plan-uuid-1",
+      "planName": "Monthly",
+      "amount": 29900,
+      "currency": "INR",
+      "status": "active",
+      "startedAt": "2025-01-15T10:30:00.000Z",
+      "expiresAt": "2025-02-14T10:30:00.000Z",
+      "canceledAt": null,
+      "autoRenew": false,
+      "metadata": {
+        "durationDays": 30
+      },
+      "createdAt": "2025-01-15T10:30:00.000Z",
+      "updatedAt": "2025-01-15T10:30:00.000Z"
+    },
+    "message": "Payment verified and subscription activated"
+  }
+}</code></pre>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">GET</span>
+                        <span class="endpoint-path">/api/payments/subscription/status</span>
+                    </div>
+                    <div class="endpoint-description">Get user's active subscription</div>
+                    <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span></p>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "subscription": {
+      "id": "subscription-uuid",
+      "userId": "user-uuid",
+      "paymentId": "payment-uuid",
+      "planId": "plan-uuid-1",
+      "planName": "Monthly",
+      "amount": 29900,
+      "currency": "INR",
+      "status": "active",
+      "startedAt": "2025-01-15T10:30:00.000Z",
+      "expiresAt": "2025-02-14T10:30:00.000Z",
+      "canceledAt": null,
+      "autoRenew": false,
+      "metadata": {
+        "durationDays": 30
+      },
+      "createdAt": "2025-01-15T10:30:00.000Z",
+      "updatedAt": "2025-01-15T10:30:00.000Z"
+    }
+  }
+}</code></pre>
+                    <div class="info-box" style="margin-top: 1rem;">
+                        <strong>Note:</strong> If the user has no active subscription, <code>subscription</code> will be <code>null</code>.
+                    </div>
                 </div>
 
                 <div class="endpoint">
@@ -1959,6 +2166,16 @@ GET /api/payments/rental-status/episode-uuid?type=episode</code></pre>
                     </ol>
                 </div>
 
+                <div class="info-box warning" style="margin-top: 1rem;">
+                    <strong>Subscription Flow:</strong>
+                    <ol style="margin-top: 0.5rem; margin-left: 1.5rem;">
+                        <li>Call <code>GET /api/payments/subscription/plans</code> to list plans</li>
+                        <li>Call <code>POST /api/payments/subscription/create</code> with a <code>planId</code> (plan code or id)</li>
+                        <li>Complete payment on the gateway, then call <code>POST /api/payments/subscription/verify</code></li>
+                        <li>Use <code>GET /api/payments/subscription/status</code> to check active subscription</li>
+                    </ol>
+                </div>
+
                 <div class="info-box" style="margin-top: 1rem;">
                     <strong>Rental Duration:</strong> Rentals typically last 48 hours (configurable per content). There's a grace period after expiration during which access may still be granted. Use the <code>rental-status</code> endpoint to check current access status.
                 </div>
@@ -2309,6 +2526,20 @@ GET /api/payments/rental-status/episode-uuid?type=episode</code></pre>
                 <div class="info-box" style="margin-bottom: 1.5rem;">
                     <strong>Route Prefix:</strong> All Content Service routes are prefixed with <code>/api/content/</code>
                 </div>
+                <div class="info-box warning" style="margin-bottom: 1.5rem;">
+                    <strong>Series Playback Flow (Start → End):</strong>
+                    <ol style="margin-top: 0.5rem; margin-left: 1.5rem;">
+                        <li>Load home/series listings: <code>GET /api/content/sections?context=home&platform=...</code> or <code>GET /api/content/series</code></li>
+                        <li>Open series detail: <code>GET /api/content/series/:id</code> (includes seasons + episodes + <code>canWatch</code>)</li>
+                        <li>Resolve episode to play: use selected episode ID, or <code>GET /api/content/series/:id/playable-episode</code> for first playable</li>
+                        <li>If <code>canWatch=false</code>, fetch pricing/status: <code>GET /api/payments/rental-status/:contentId?type=episode</code></li>
+                        <li>For rent content: <code>POST /api/payments/create</code> → gateway → <code>POST /api/payments/verify</code></li>
+                        <li>For subscription content: <code>GET /api/payments/subscription/plans</code> → <code>POST /api/payments/subscription/create</code> → <code>POST /api/payments/subscription/verify</code></li>
+                        <li>Start streaming with episode ID: <code>POST /api/content/stream/start</code> (contentType: <code>episode</code>)</li>
+                        <li>During playback: send <code>POST /api/content/stream/heartbeat</code> at interval</li>
+                        <li>On exit: <code>POST /api/content/stream/stop</code> with final position</li>
+                    </ol>
+                </div>
 
                 <div class="endpoint">
                     <div class="endpoint-header">
@@ -2494,6 +2725,57 @@ GET /api/payments/rental-status/episode-uuid?type=episode</code></pre>
 }</code></pre>
                     <div class="info-box">
                         <strong>Note:</strong> This endpoint returns complete series information including nested seasons and episodes. Only published episodes are included in the response. The <code>language</code> and <code>rating</code> objects are simplified (no IDs). Genres are returned as an array of strings. Image URLs (<code>posterUrl</code>, <code>backdropUrl</code>, <code>heroUrl</code>, <code>titleImageUrl</code>) point to the primary images. The <code>trailerUrl</code> is the playback URL for the series trailer if available. Use the pricing endpoint to get available rental price tiers for episodes.
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">GET</span>
+                        <span class="endpoint-path">/api/content/series/:id/playable-episode</span>
+                    </div>
+                    <div class="endpoint-description">Get the first playable episode for a series (first published and released episode with a video)</div>
+                    <p><strong>Access:</strong> Public (no authentication required)</p>
+                    <h4>Path Parameters:</h4>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Required</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>id</code></td>
+                                <td>string</td>
+                                <td>Yes</td>
+                                <td>Series ID (UUID)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h4>Example:</h4>
+                    <pre><code class="language-bash">GET /api/content/series/series-uuid/playable-episode</code></pre>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "seriesId": "series-uuid",
+    "episodeId": "episode-uuid",
+    "seasonId": "season-uuid",
+    "seasonNumber": 1,
+    "episodeNumber": 1,
+    "title": "Episode 1"
+  }
+}</code></pre>
+                    <div class="info-box" style="margin-top: 1rem;">
+                        <strong>Note:</strong> This endpoint finds the first playable episode by:
+                        <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
+                            <li>Filtering for published and released episodes</li>
+                            <li>Ensuring the episode has an associated video (stream video record)</li>
+                            <li>Ordering by season number (ascending), then episode number (ascending)</li>
+                        </ul>
+                        Use this endpoint when a user wants to "play a series" - it automatically resolves to the first playable episode. If no playable episode is found, returns <code>404 Not Found</code>.
                     </div>
                 </div>
             </section>
@@ -3356,7 +3638,7 @@ GET /api/content/trending?type=movie&maxContentRating=PG-13&timeWindow=30d</code
                         <strong>Device Categories:</strong> The system limits one active stream per device category (mobile, tablet, TV, web). If you try to start a stream on a device category that's already in use, you'll receive a <code>409 Conflict</code> error with details about the blocking session.
                     </div>
                     <div class="info-box" style="margin-top: 1rem;">
-                        <strong>Rental Access:</strong> If the content requires a rental and the user doesn't have an active rental, the endpoint returns <code>403 Forbidden</code> with rental information. You should redirect the user to the payment flow. For episodes, rental access is checked at the episode level (not the series level).
+                        <strong>Access Checks:</strong> If the content requires a rental, the endpoint returns <code>403 Forbidden</code> with <code>RENTAL_REQUIRED</code> and rental info. If the content requires a subscription, it returns <code>SUBSCRIPTION_REQUIRED</code>. Redirect users to the appropriate payment or subscription flow. For episodes, access is checked at the episode level (not the series level).
                     </div>
                     <div class="info-box" style="margin-top: 1rem;">
                         <strong>Content Type Detection:</strong> The system automatically detects whether <code>contentId</code> is a movie or episode by checking both the <code>movies</code> and <code>episodes</code> tables. The <code>contentType</code> field in the stream session will be set to either <code>"movie"</code> or <code>"episode"</code> accordingly.
@@ -4583,6 +4865,37 @@ async function getContentPricing(contentType, contentId) {
   return response.json();
 }
 
+async function getSubscriptionPlans() {
+  const response = await fetch(`${API_BASE_URL}/api/payments/subscription/plans`);
+  return response.json();
+}
+
+async function createSubscriptionPayment(planId, platform = 'web') {
+  const response = await authenticatedFetch('/api/payments/subscription/create', {
+    method: 'POST',
+    body: JSON.stringify({ planId, platform }),
+  });
+  return response.json();
+}
+
+async function verifySubscriptionPayment(paymentId, gatewayData) {
+  const response = await authenticatedFetch('/api/payments/subscription/verify', {
+    method: 'POST',
+    body: JSON.stringify({
+      paymentId,
+      gatewayOrderId: gatewayData.orderId,
+      gatewayPaymentId: gatewayData.paymentId,
+      gatewaySignature: gatewayData.signature,
+    }),
+  });
+  return response.json();
+}
+
+async function getSubscriptionStatus() {
+  const response = await authenticatedFetch('/api/payments/subscription/status');
+  return response.json();
+}
+
 async function createPayment(contentId, contentType = 'movie', durationHours = 24, platform = 'web') {
   const response = await authenticatedFetch('/api/payments/create', {
     method: 'POST',
@@ -4799,6 +5112,10 @@ async function playContent(contentId, contentType, deviceInfo, profileId) {
       if (startResponse.error === 'RENTAL_REQUIRED') {
         // Redirect to payment flow
         throw new Error('Rental required');
+      }
+      if (startResponse.error === 'SUBSCRIPTION_REQUIRED') {
+        // Redirect to subscription flow
+        throw new Error('Subscription required');
       }
       throw new Error(startResponse.error || 'Failed to start stream');
     }
