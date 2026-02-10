@@ -602,6 +602,7 @@
                     <div class="nav-section-title">User Service</div>
                     <a href="#otp-api" class="nav-link sub">OTP API</a>
                     <a href="#auth-api" class="nav-link sub">Authentication</a>
+                    <a href="#qr-auth-api" class="nav-link sub">QR Auth (TV)</a>
                     <a href="#users-api" class="nav-link sub">Users & Profiles</a>
                 </div>
                 <div class="nav-section">
@@ -945,6 +946,147 @@
                     <pre><code class="language-json">{
   "success": true,
   "message": "Session revoked successfully"
+}</code></pre>
+                </div>
+            </section>
+
+            <!-- User Service: QR Auth API -->
+            <section id="qr-auth-api" class="section">
+                <h2>QR Auth API (TV)</h2>
+                <p>Cross-device login for TV apps using a mobile phone. The TV displays a QR code, the user scans it with the mobile app (where they are logged in), and approves the login. Tokens are delivered to the TV in real-time over WebSockets.</p>
+
+                <div class="info-box">
+                    <strong>Note:</strong> This flow requires a WebSocket connection to receive the authentication tokens in real-time.
+                </div>
+
+                <h3>Workflow Overview</h3>
+                <ol>
+                    <li>TV requests a QR session (<code>POST /generate</code>)</li>
+                    <li>TV displays the QR code and connects to WebSocket</li>
+                    <li>User scans QR with mobile app</li>
+                    <li>User approves login on mobile app</li>
+                    <li>TV receives tokens via WebSocket and logs in</li>
+                </ol>
+
+                <h3>TV Client Integration</h3>
+                <p><strong>1. Generate QR Code</strong></p>
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-post">POST</span>
+                        <span class="endpoint-path">/api/auth/qr/generate</span>
+                    </div>
+                    <div class="endpoint-description">Generate a new QR auth session</div>
+                    <h4>Request Body:</h4>
+                    <pre><code class="language-json">{
+  "deviceInfo": {
+    "deviceName": "Living Room TV",
+    "deviceType": "tv"
+  }
+}</code></pre>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "token": "qr-token-uuid",
+    "wsUrl": "ws://api.vaki-ott.com/qr-auth",
+    "expiresIn": 300
+  }
+}</code></pre>
+                </div>
+
+                <p><strong>2. Connect to WebSocket</strong></p>
+                <p>Connect to the namespace <code>/qr-auth</code> and emit <code>join-qr-session</code> with the token.</p>
+                <pre><code class="language-javascript">const socket = io('https://api.vaki-ott.com/qr-auth', {
+  transports: ['websocket']
+});
+
+socket.on('connect', () => {
+  socket.emit('join-qr-session', { qrCodeId: token });
+});
+
+socket.on('qr-status', (payload) => {
+  if (payload.status === 'scanned') {
+    console.log('Scanned by user:', payload.scannedBy.email);
+  } else if (payload.status === 'approved') {
+    const { accessToken, refreshToken } = payload.tokens;
+    const { user, profiles } = payload; 
+    // Login successful
+    // - Save tokens
+    // - Show profile selection (profiles array is included)
+  }
+});</code></pre>
+
+                <h3>Mobile App Integration</h3>
+                <p>The mobile app scans the code and calls the following endpoints.</p>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-post">POST</span>
+                        <span class="endpoint-path">/api/auth/qr/scan</span>
+                    </div>
+                    <div class="endpoint-description">Notify that QR code was scanned</div>
+                    <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span></p>
+                    <h4>Request Body:</h4>
+                    <pre><code class="language-json">{
+  "token": "qr-token-from-image"
+}</code></pre>
+                    <h4>Response:</h4>
+                     <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "qrCodeId": "session-uuid",
+    "status": "scanned"
+  }
+}</code></pre>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-post">POST</span>
+                        <span class="endpoint-path">/api/auth/qr/:qrCodeId/approve</span>
+                    </div>
+                    <div class="endpoint-description">Approve the login request</div>
+                    <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span></p>
+                    <h4>Request Body:</h4>
+                    <pre><code class="language-json">{
+  "deviceName": "Samsung TV", // optional
+  "deviceType": "tv" // optional
+}</code></pre>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "status": "approved",
+    "user": { "id": "...", "email": "..." },
+    "profiles": [ { "id": "...", "name": "Main", ... } ]
+  }
+}</code></pre>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-post">POST</span>
+                        <span class="endpoint-path">/api/auth/qr/:qrCodeId/reject</span>
+                    </div>
+                    <div class="endpoint-description">Reject the login request</div>
+                    <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span></p>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "message": "Login rejected"
+}</code></pre>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-delete">DELETE</span>
+                        <span class="endpoint-path">/api/auth/qr/:qrCodeId</span>
+                    </div>
+                    <div class="endpoint-description">Cancel the QR session (e.g., user navigates away)</div>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "message": "QR code session cancelled"
 }</code></pre>
                 </div>
             </section>
@@ -1778,8 +1920,8 @@ GET /api/payments/pricing/episode/episode-uuid</code></pre>
                     <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span></p>
                     <h4>Request Body:</h4>
                     <pre><code class="language-json">{
-  "contentId": "movie-uuid",
-  "contentType": "movie", // "movie" | "series" | "episode"
+  "contentId": "content-uuid",
+  "contentType": "movie", // "movie" | "series" | "season" | "episode"
   "durationHours": 24, //  24, 36, 72, 96, or 168 (defaults to 24)
   "platform": "web" // optional: "ios" | "android" | "web"
 }</code></pre>
@@ -1804,7 +1946,7 @@ GET /api/payments/pricing/episode/episode-uuid</code></pre>
                                 <td><code>contentType</code></td>
                                 <td>string</td>
                                 <td>Yes</td>
-                                <td>Content type: <code>movie</code>, <code>series</code>, or <code>episode</code></td>
+                                <td>Content type: <code>movie</code>, <code>series</code>, <code>season</code>, or <code>episode</code></td>
                             </tr>
                             <tr>
                                 <td><code>durationHours</code></td>
@@ -1851,6 +1993,16 @@ GET /api/payments/pricing/episode/episode-uuid</code></pre>
                             <li>For Apple Pay, <code>paymentData.requiresClientSidePayment</code> will be <code>true</code> - you'll need to handle the payment on the client side</li>
                         </ul>
                         <p style="margin-top: 0.5rem;"><strong>Note:</strong> RazorPay receipt format is <code>r_&lt;payment-id&gt;</code> (max 40 characters as per RazorPay requirements).</p>
+                    </div>
+
+                    <div class="info-box warning" style="margin-top: 1rem;">
+                        <strong>Series Payment Integration:</strong>
+                        <p>When purchasing series content, use the <code>pricingSource</code> returned from <code>GET /api/payments/pricing/series/:id/details</code> to determine the request parameters:</p>
+                        <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
+                            <li><strong>pricingSource = "series"</strong>: Use <code>contentType: "series"</code> and <code>contentId: seriesId</code>. Pays for the entire series.</li>
+                            <li><strong>pricingSource = "season"</strong>: Use <code>contentType: "season"</code> and <code>contentId: seasonId</code>. Pays for a specific season.</li>
+                            <li><strong>pricingSource = "episode"</strong>: Use <code>contentType: "episode"</code> and <code>contentId: episodeId</code>. Pays for a specific episode.</li>
+                        </ul>
                     </div>
                 </div>
 
@@ -2155,6 +2307,37 @@ GET /api/payments/rental-status/episode-uuid?type=episode</code></pre>
 }</code></pre>
                 </div>
 
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">GET</span>
+                        <span class="endpoint-path">/api/payments/pricing/series/:seriesId/details</span>
+                    </div>
+                    <div class="endpoint-description">Get effective pricing details for a series (pricing tiers for series, seasons, or episodes)</div>
+                    <p><strong>Access:</strong> Public</p>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "seriesId": "series-uuid",
+    "contentType": "rent",
+    "currency": "INR",
+    "pricingSource": "series",
+    "pricing": [
+      {
+        "durationHours": 24,
+        "price": 100,
+        "currency": "INR"
+      }
+    ],
+    "seasons": [],
+    "episodes": []
+  }
+}</code></pre>
+                    <div class="info-box">
+                        <strong>Note:</strong> This endpoint returns the <code>pricingSource</code> ("series", "season", or "episode") and the relevant pricing tiers. It does NOT return rental status or canWatch flags (use <code>watch-status</code> for that).
+                    </div>
+                </div>
+
                 <div class="info-box warning" style="margin-top: 2rem;">
                     <strong>Payment Flow:</strong>
                     <ol style="margin-top: 0.5rem; margin-left: 1.5rem;">
@@ -2187,6 +2370,18 @@ GET /api/payments/rental-status/episode-uuid?type=episode</code></pre>
                 <p>Public catalog endpoints for browsing and viewing movie content. No authentication required.</p>
                 <div class="info-box" style="margin-bottom: 1.5rem;">
                     <strong>Route Prefix:</strong> All Content Service routes are prefixed with <code>/api/content/</code>
+                </div>
+
+                <div class="info-box warning" style="margin-bottom: 1.5rem;">
+                    <strong>Movie Playback Flow (Start → End):</strong>
+                    <ol style="margin-top: 0.5rem; margin-left: 1.5rem;">
+                        <li><strong>Get Details:</strong> <code>GET /api/content/movies/:id</code> (Public info: Title, Description, Cast, Media, <code>contentType</code>)</li>
+                        <li><strong>Check Access (Logged In):</strong> <code>GET /api/payments/rental-status/:contentId?type=movie</code> (Determine if user has an active rental)</li>
+                        <li><strong>Populate UI:</strong> If <code>contentType</code> is <code>"free"</code>, show Play directly. If <code>"rent"</code> and <code>hasActiveRental: true</code>, show Play. Otherwise show Rent button.</li>
+                        <li><strong>If Locked (Rent):</strong> Fetch pricing: <code>GET /api/payments/pricing/movie/:movieId</code> to get available rental tiers (24h, 36h, 72h, etc.).</li>
+                        <li><strong>Purchase:</strong> Call <code>POST /api/payments/create</code> with <code>contentType: "movie"</code>, <code>contentId: movieId</code>, and selected <code>durationHours</code>.</li>
+                        <li><strong>Stream:</strong> Call <code>POST /api/content/stream/start</code> with movie ID (Backend verifies access).</li>
+                    </ol>
                 </div>
 
                 <div class="endpoint">
@@ -2406,117 +2601,6 @@ GET /api/payments/rental-status/episode-uuid?type=episode</code></pre>
                         <strong>Note:</strong> This endpoint includes movie recommendations based on shared genres, directors, and actors. Recommendations are ordered by relevance (more shared genres = higher priority). The response includes photos for directors, cast, and producers, as well as trailer video information if available. Media assets are grouped by type (posters, backdrops, titleImages, videos, trailers) and only essential fields are returned. Directors and producers include their roles. Use the pricing endpoint to get available rental price tiers.
                     </div>
                 </div>
-
-                <div class="endpoint">
-                    <div class="endpoint-header">
-                        <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/content/movies/:id/with-photos</span>
-                    </div>
-                    <div class="endpoint-description">Get movie details with all media assets</div>
-                    <h4>Response:</h4>
-                    <pre><code class="language-json">{
-  "success": true,
-  "data": {
-    "id": "movie-uuid",
-    "title": "Movie Title",
-    "description": "Movie description",
-    "year": 2024,
-    "duration": 120,
-    "language": { "id": "language-uuid", "name": "English" },
-    "rating": { "id": "rating-uuid", "name": "PG-13" },
-    "genres": [{"id": "genre-uuid", "name": "Action"}],
-    "directors": [{"id": "director-uuid", "name": "Director Name"}],
-    "cast": [{"actorName": "Actor Name", "characterName": "Character"}],
-    "producers": [{"id": "producer-uuid", "name": "Producer Name"}],
-    "media": [
-      {
-        "id": "asset-uuid",
-        "fileType": "poster",
-        "fileCategory": "poster",
-        "cdnUrl": "https://cdn.example.com/posters/movie-uuid.jpg",
-        "width": 1920,
-        "height": 1080,
-        "imageResolution": "original"
-      }
-    ]
-  }
-}</code></pre>
-                </div>
-
-                <div class="endpoint">
-                    <div class="endpoint-header">
-                        <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/content/movies/:id/video-status</span>
-                    </div>
-                    <div class="endpoint-description">Get video transcoding status and thumbnails</div>
-                    <h4>Response:</h4>
-                    <pre><code class="language-json">{
-  "success": true,
-  "data": {
-    "videos": [
-      {
-        "id": "asset-uuid",
-        "fileType": "video",
-        "fileCategory": "main",
-        "cdnUrl": "https://cdn.example.com/videos/movie-uuid.mp4",
-        "uploadStatus": "completed",
-        "processingStatus": "completed",
-        "width": 1920,
-        "height": 1080,
-        "duration": 7200
-      }
-    ],
-    "thumbnails": [
-      {
-        "id": "thumbnail-uuid",
-        "fileType": "photo",
-        "fileCategory": "thumbnail",
-        "cdnUrl": "https://cdn.example.com/thumbnails/movie-uuid.jpg"
-      }
-    ]
-  }
-}</code></pre>
-                </div>
-
-                <div class="endpoint">
-                    <div class="endpoint-header">
-                        <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/content/movies/:id/image-status</span>
-                    </div>
-                    <div class="endpoint-description">Get poster/backdrop status grouped by file category and resolution</div>
-                    <h4>Response:</h4>
-                    <pre><code class="language-json">{
-  "success": true,
-  "data": {
-    "posters": {
-      "poster": [
-        {
-          "id": "asset-uuid",
-          "fileType": "poster",
-          "fileCategory": "poster",
-          "cdnUrl": "https://cdn.example.com/posters/movie-uuid.jpg",
-          "width": 1920,
-          "height": 1080,
-          "imageResolution": "original"
-        }
-      ]
-    },
-    "backdrops": {
-      "backdrop": [
-        {
-          "id": "asset-uuid",
-          "fileType": "backdrop",
-          "fileCategory": "backdrop",
-          "cdnUrl": "https://cdn.example.com/backdrops/movie-uuid.jpg",
-          "width": 3840,
-          "height": 2160,
-          "imageResolution": "original"
-        }
-      ]
-    }
-  }
-}</code></pre>
-                </div>
             </section>
 
             <!-- Content Service: Series API -->
@@ -2529,15 +2613,12 @@ GET /api/payments/rental-status/episode-uuid?type=episode</code></pre>
                 <div class="info-box warning" style="margin-bottom: 1.5rem;">
                     <strong>Series Playback Flow (Start → End):</strong>
                     <ol style="margin-top: 0.5rem; margin-left: 1.5rem;">
-                        <li>Load home/series listings: <code>GET /api/content/sections?context=home&platform=...</code> or <code>GET /api/content/series</code></li>
-                        <li>Open series detail: <code>GET /api/content/series/:id</code> (includes seasons + episodes + <code>canWatch</code>)</li>
-                        <li>Resolve episode to play: use selected episode ID, or <code>GET /api/content/series/:id/playable-episode</code> for first playable</li>
-                        <li>If <code>canWatch=false</code>, fetch pricing/status: <code>GET /api/payments/rental-status/:contentId?type=episode</code></li>
-                        <li>For rent content: <code>POST /api/payments/create</code> → gateway → <code>POST /api/payments/verify</code></li>
-                        <li>For subscription content: <code>GET /api/payments/subscription/plans</code> → <code>POST /api/payments/subscription/create</code> → <code>POST /api/payments/subscription/verify</code></li>
-                        <li>Start streaming with episode ID: <code>POST /api/content/stream/start</code> (contentType: <code>episode</code>)</li>
-                        <li>During playback: send <code>POST /api/content/stream/heartbeat</code> at interval</li>
-                        <li>On exit: <code>POST /api/content/stream/stop</code> with final position</li>
+                        <li><strong>Get Metadata:</strong> <code>GET /api/content/series/:id</code> (Public info: Details, Seasons, Episodes)</li>
+                        <li><strong>Get Access (Logged In):</strong> <code>GET /api/content/series/:id/watch-status</code> (Determine <code>canWatch</code> for series/seasons/episodes)</li>
+                        <li><strong>Populate UI:</strong> Merge metadata with access flags. Unlock "Play" buttons or show "Rent" buttons.</li>
+                        <li><strong>If Locked (Rent):</strong> Fetch pricing details: <code>GET /api/payments/pricing/series/:seriesId/details</code> to get pricing source and tiers.</li>
+                        <li><strong>Purchase:</strong> Call <code>POST /api/payments/create</code> using the pricing options.</li>
+                        <li><strong>Stream:</strong> Call <code>POST /api/content/stream/start</code> with episode ID (Backend verifies access).</li>
                     </ol>
                 </div>
 
@@ -2637,12 +2718,12 @@ GET /api/payments/rental-status/episode-uuid?type=episode</code></pre>
     "year": 2025,
     "releaseDate": "2025-12-18",
     "isReleased": false,
-    "contentType": "rent",
-    "pricing": [
-      { "durationHours": 24, "price": 199, "currency": "INR" },
-      { "durationHours": 72, "price": 299, "currency": "INR" }
-    ],
-    "pricingSource": "series",
+    "contentType": "free",
+    "rentalPrice24h": null,
+    "rentalPrice36h": null,
+    "rentalPrice72h": null,
+    "rentalPrice96h": null,
+    "rentalPrice168h": null,
     "metaTitle": null,
     "metaDescription": null,
     "metaKeywords": null,
@@ -2667,24 +2748,21 @@ GET /api/payments/rental-status/episode-uuid?type=episode</code></pre>
       {
         "id": "director-uuid",
         "name": "Director Name",
-        "slug": "director-name",
-        "photoUrl": "https://cdn.example.com/directors/director-uuid.jpg"
+        "slug": "director-name"
       }
     ],
     "cast": [
       {
         "id": "actor-uuid",
         "name": "Actor Name",
-        "character": "Character Name",
-        "photoUrl": "https://cdn.example.com/actors/actor-uuid.jpg"
+        "character": "Character Name"
       }
     ],
     "producers": [
       {
         "id": "producer-uuid",
         "name": "Producer Name",
-        "slug": "producer-name",
-        "photoUrl": "https://cdn.example.com/producers/producer-uuid.jpg"
+        "slug": "producer-name"
       }
     ],
     "posterUrl": "https://cdn.example.com/posters/series-uuid.jpg",
@@ -2703,7 +2781,6 @@ GET /api/payments/rental-status/episode-uuid?type=episode</code></pre>
         "releaseDate": "2025-12-18",
         "isReleased": false,
         "status": "published",
-        "pricingSource": "series",
         "episodes": [
           {
             "id": "episode-uuid",
@@ -2714,10 +2791,13 @@ GET /api/payments/rental-status/episode-uuid?type=episode</code></pre>
             "shortDescription": "Short description",
             "releaseDate": "2025-12-18",
             "isReleased": false,
-            "status": "published",
-            "thumbnailUrl": "https://cdn.example.com/episodes/episode-uuid.jpg",
-            "canWatch": false,
-            "pricingSource": "series"
+            "contentType": "free",
+            "rentalPrice24h": null,
+            "rentalPrice36h": null,
+            "rentalPrice72h": null,
+            "rentalPrice96h": null,
+            "rentalPrice168h": null,
+            "status": "published"
           }
         ]
       }
@@ -2725,60 +2805,54 @@ GET /api/payments/rental-status/episode-uuid?type=episode</code></pre>
   }
 }</code></pre>
                     <div class="info-box">
-                        <strong>Note:</strong> This endpoint returns complete series information including nested seasons and episodes. Only published episodes are included in the response. The <code>language</code> and <code>rating</code> objects are simplified (no IDs). Genres are returned as an array of strings. Image URLs (<code>posterUrl</code>, <code>backdropUrl</code>, <code>heroUrl</code>, <code>titleImageUrl</code>) point to the primary images. People include <code>photoUrl</code> when available. Episodes include <code>thumbnailUrl</code> and <code>canWatch</code>. Use <code>pricing</code> for series-level tiers and <code>pricingSource</code> to decide if pricing should be fetched at the series, season, or episode level.
+                        <strong>Note:</strong> This endpoint returns complete series information including nested seasons and episodes. Only published episodes are included in the response. The <code>language</code> and <code>rating</code> objects are simplified (no IDs). Genres are returned as an array of strings. Image URLs (<code>posterUrl</code>, <code>backdropUrl</code>, <code>heroUrl</code>, <code>titleImageUrl</code>) point to the primary images. The <code>trailerUrl</code> is the playback URL for the series trailer if available. Use the pricing endpoint to get available rental price tiers for episodes.
                     </div>
                 </div>
 
                 <div class="endpoint">
                     <div class="endpoint-header">
                         <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/content/series/:id/playable-episode</span>
+                        <span class="endpoint-path">/api/content/series/:id/watch-status</span>
                     </div>
-                    <div class="endpoint-description">Get the first playable episode for a series (first published and released episode with a video)</div>
-                    <p><strong>Access:</strong> Public (no authentication required)</p>
-                    <h4>Path Parameters:</h4>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Parameter</th>
-                                <th>Type</th>
-                                <th>Required</th>
-                                <th>Description</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><code>id</code></td>
-                                <td>string</td>
-                                <td>Yes</td>
-                                <td>Series ID (UUID)</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <h4>Example:</h4>
-                    <pre><code class="language-bash">GET /api/content/series/series-uuid/playable-episode</code></pre>
+                    <div class="endpoint-description">Get user's watch access status for a series (requires authentication)</div>
+                    <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span></p>
                     <h4>Response:</h4>
                     <pre><code class="language-json">{
   "success": true,
   "data": {
     "seriesId": "series-uuid",
-    "episodeId": "episode-uuid",
-    "seasonId": "season-uuid",
-    "seasonNumber": 1,
-    "episodeNumber": 1,
-    "title": "Episode 1"
+    "canWatch": false,
+    "contentType": "rent",
+    "hasActiveRental": false,
+    "rental": null,
+    "seasons": [
+      {
+        "seasonId": "season-uuid",
+        "seasonNumber": 1,
+        "title": "Season 1",
+        "canWatch": true,
+        "hasActiveRental": true,
+        "rentalType": "season",
+        "episodes": [
+          {
+            "episodeId": "episode-uuid",
+            "episodeNumber": 1,
+            "title": "Episode 1",
+            "canWatch": true,
+            "hasActiveRental": true,
+            "rentalType": "season"
+          }
+        ]
+      }
+    ]
   }
 }</code></pre>
-                    <div class="info-box" style="margin-top: 1rem;">
-                        <strong>Note:</strong> This endpoint finds the first playable episode by:
-                        <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
-                            <li>Filtering for published and released episodes</li>
-                            <li>Ensuring the episode has an associated video (stream video record)</li>
-                            <li>Ordering by season number (ascending), then episode number (ascending)</li>
-                        </ul>
-                        Use this endpoint when a user wants to "play a series" - it automatically resolves to the first playable episode. If no playable episode is found, returns <code>404 Not Found</code>.
+                    <div class="info-box">
+                        <strong>Usage:</strong> Call this endpoint after <code>GET /api/content/series/:id</code> to overlay user-specific access rights (locks/unlocks) on the UI. It returns a simplified tree of seasons and episodes with <code>canWatch</code> flags.
                     </div>
                 </div>
+
+
             </section>
 
             <!-- Content Service: Reels API -->
@@ -3472,47 +3546,7 @@ GET /api/content/trending?type=movie&maxContentRating=PG-13&timeWindow=30d</code
                     <strong>Redis Required:</strong> Streaming functionality requires Redis to be available. If Redis is unavailable, streaming endpoints will return an error.
                 </div> -->
 
-                <div class="endpoint">
-                    <div class="endpoint-header">
-                        <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/content/stream/can-start</span>
-                    </div>
-                    <div class="endpoint-description">Check if user can start a new stream</div>
-                    <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span></p>
-                    <h4>Query Parameters:</h4>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Parameter</th>
-                                <th>Type</th>
-                                <th>Required</th>
-                                <th>Description</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><code>deviceType</code></td>
-                                <td>string</td>
-                                <td>No</td>
-                                <td>Check if a specific device type category has an available slot</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <h4>Response:</h4>
-                    <pre><code class="language-json">{
-  "success": true,
-  "data": {
-    "canStart": true,
-    "deviceSlots": {
-      "used": ["mobile", "tv"],
-      "available": ["tablet", "web"],
-      "total": 4
-    },
-    "canStartSpecific": true,
-    "specificCategory": "mobile"
-  }
-}</code></pre>
-                </div>
+
 
                 <div class="endpoint">
                     <div class="endpoint-header">
@@ -3697,150 +3731,7 @@ GET /api/content/trending?type=movie&maxContentRating=PG-13&timeWindow=30d</code
 }</code></pre>
                 </div>
 
-                <div class="endpoint">
-                    <div class="endpoint-header">
-                        <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/content/stream/active</span>
-                    </div>
-                    <div class="endpoint-description">Get all active streaming sessions for the user</div>
-                    <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span></p>
-                    <p><strong>Optional Header:</strong> <span class="inline-code">x-device-id: &lt;device-id&gt;</span> - Marks sessions from this device as current</p>
-                    <h4>Response:</h4>
-                    <pre><code class="language-json">{
-  "success": true,
-  "data": {
-    "sessions": [
-      {
-        "sessionToken": "session-token-xxxxx",
-        "deviceName": "iPhone 15 Pro",
-        "deviceType": "mobile",
-        "deviceCategory": "mobile",
-        "contentId": "movie-uuid",
-        "contentTitle": "Movie Title",
-        "startedAt": "2025-01-15T10:30:00.000Z",
-        "isCurrentDevice": true
-      }
-    ],
-    "deviceSlots": {
-      "used": ["mobile", "tv"],
-      "available": ["tablet", "web"],
-      "total": 4
-    }
-  }
-}</code></pre>
-                </div>
 
-                <div class="endpoint">
-                    <div class="endpoint-header">
-                        <span class="badge badge-post">POST</span>
-                        <span class="endpoint-path">/api/content/stream/force-logout</span>
-                    </div>
-                    <div class="endpoint-description">Force logout other streaming sessions</div>
-                    <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span></p>
-                    <h4>Request Body (one of the following):</h4>
-                    <p>Terminate specific sessions:</p>
-                    <pre><code class="language-json">{
-  "sessionTokens": ["session-token-xxxxx", "session-token-yyyyy"]
-}</code></pre>
-                    <p>Keep only sessions from a specific device:</p>
-                    <pre><code class="language-json">{
-  "keepDeviceId": "device-uuid"
-}</code></pre>
-                    <p>Logout all sessions:</p>
-                    <pre><code class="language-json">{
-  "logoutAll": true
-}</code></pre>
-                    <p>Logout specific device category:</p>
-                    <pre><code class="language-json">{
-  "deviceCategory": "mobile"
-}</code></pre>
-                    <h4>Response:</h4>
-                    <pre><code class="language-json">{
-  "success": true,
-  "message": "Sessions terminated successfully",
-  "data": {
-    "terminatedCount": 2,
-    "deviceSlots": {
-      "used": ["web"],
-      "available": ["mobile", "tablet", "tv"]
-    }
-  }
-}</code></pre>
-                </div>
-
-                <div class="endpoint">
-                    <div class="endpoint-header">
-                        <span class="badge badge-get">GET</span>
-                        <span class="endpoint-path">/api/content/stream/history</span>
-                    </div>
-                    <div class="endpoint-description">Get streaming history for analytics</div>
-                    <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span></p>
-                    <h4>Query Parameters:</h4>
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Parameter</th>
-                                <th>Type</th>
-                                <th>Required</th>
-                                <th>Description</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><code>page</code></td>
-                                <td>number</td>
-                                <td>No</td>
-                                <td>Page number (default: 1)</td>
-                            </tr>
-                            <tr>
-                                <td><code>limit</code></td>
-                                <td>number</td>
-                                <td>No</td>
-                                <td>Items per page (default: 20, max: 100)</td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <h4>Response:</h4>
-                    <pre><code class="language-json">{
-  "success": true,
-  "data": {
-    "data": [
-      {
-        "id": "session-uuid",
-        "contentId": "movie-uuid",
-        "contentTitle": "Movie Title",
-        "contentType": "movie", // "movie" or "episode"
-        "deviceName": "iPhone 15 Pro",
-        "deviceType": "mobile",
-        "startedAt": "2025-01-15T10:30:00.000Z",
-        "endedAt": "2025-01-15T11:30:00.000Z",
-        "watchDuration": 3600,
-        "maxPosition": 3600,
-        "endReason": "user_stopped"
-      },
-      {
-        "id": "session-uuid-2",
-        "contentId": "episode-uuid",
-        "contentTitle": "Episode Title",
-        "contentType": "episode",
-        "deviceName": "iPad Pro",
-        "deviceType": "tablet",
-        "startedAt": "2025-01-15T12:00:00.000Z",
-        "endedAt": "2025-01-15T12:45:00.000Z",
-        "watchDuration": 2700,
-        "maxPosition": 2700,
-        "endReason": "user_stopped"
-      }
-    ],
-    "pagination": {
-      "page": 1,
-      "limit": 20,
-      "total": 50,
-      "totalPages": 3
-    }
-  }
-}</code></pre>
-                </div>
 
                 <div class="endpoint">
                     <div class="endpoint-header">
@@ -3903,10 +3794,64 @@ GET /api/content/trending?type=movie&maxContentRating=PG-13&timeWindow=30d</code
                     </div>
                 </div>
 
+                <h3 style="margin-top: 2rem;">Device Registration</h3>
+                <div class="info-box" style="margin-bottom: 1.5rem;">
+                    <strong>Device Registration Rules:</strong>
+                    <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
+                        <li>Each user has 4 device slots: <code>mobile</code>, <code>tablet</code>, <code>tv</code>, <code>web</code></li>
+                        <li>The first device to stream in a category gets permanently registered</li>
+                        <li>Only the registered device can stream in that category</li>
+                        <li>Devices <strong>cannot</strong> be removed or replaced while user has active rentals</li>
+                    </ul>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">GET</span>
+                        <span class="endpoint-path">/api/content/stream/devices</span>
+                    </div>
+                    <div class="endpoint-description">Get all registered devices for the user, grouped by category</div>
+                    <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span></p>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "devices": {
+      "mobile": {
+        "deviceId": "device-uuid",
+        "deviceName": "iPhone 15 Pro",
+        "deviceType": "mobile",
+        "deviceModel": "iPhone15,2",
+        "registeredAt": "2025-01-10T08:00:00.000Z",
+        "lastUsedAt": "2025-01-15T10:30:00.000Z"
+      },
+      "tablet": null,
+      "tv": {
+        "deviceId": "tv-device-uuid",
+        "deviceName": "Samsung Smart TV",
+        "deviceType": "tv",
+        "deviceModel": "UN55TU7000",
+        "registeredAt": "2025-01-12T14:00:00.000Z",
+        "lastUsedAt": "2025-01-14T20:00:00.000Z"
+      },
+      "web": null
+    },
+    "summary": {
+      "registeredCount": 2,
+      "maxDevices": 4,
+      "availableSlots": ["tablet", "web"],
+      "registeredCategories": ["mobile", "tv"]
+    }
+  }
+}</code></pre>
+                </div>
+
+
+
                 <div class="info-box" style="margin-top: 2rem;">
                     <strong>Streaming Flow:</strong>
                     <ol style="margin-top: 0.5rem; margin-left: 1.5rem;">
-                        <li>Check if user can start a stream: <code>GET /api/content/stream/can-start</code></li>
+
                         <li>Start streaming session: <code>POST /api/content/stream/start</code> - returns <code>sessionToken</code> and <code>streamUrl</code></li>
                         <li>Begin playback using the <code>streamUrl</code></li>
                         <li>Send heartbeat every 30 seconds: <code>POST /api/content/stream/heartbeat</code> with <code>sessionToken</code> and <code>position</code></li>
@@ -3920,8 +3865,7 @@ GET /api/content/trending?type=movie&maxContentRating=PG-13&timeWindow=30d</code
                     <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
                         <li>Sessions expire after 90 seconds without heartbeat</li>
                         <li>One stream per device category (mobile, tablet, TV, web)</li>
-                        <li>Use <code>GET /api/content/stream/active</code> to see all active sessions</li>
-                        <li>Use <code>POST /api/content/stream/force-logout</code> to terminate other sessions if needed</li>
+
                         <li>Same device can reconnect - old session is automatically replaced</li>
                     </ul>
                 </div>
