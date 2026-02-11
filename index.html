@@ -1386,7 +1386,8 @@ socket.on('qr-status', (payload) => {
             "name": "PG-13",
             "slug": "pg-13"
           },
-          "posterUrl": "https://cdn.example.com/posters/movie-uuid.jpg"
+          "posterUrl": "https://cdn.example.com/posters/movie-uuid.jpg",
+          "backdropUrl": "https://cdn.example.com/backdrops/movie-uuid.jpg"
         }
       },
       {
@@ -1414,7 +1415,8 @@ socket.on('qr-status', (payload) => {
             "name": "PG-13",
             "slug": "pg-13"
           },
-          "posterUrl": "https://cdn.example.com/posters/series-uuid.jpg"
+          "posterUrl": "https://cdn.example.com/posters/series-uuid.jpg",
+          "backdropUrl": "https://cdn.example.com/backdrops/series-uuid.jpg"
         }
       },
       {
@@ -1435,7 +1437,8 @@ socket.on('qr-status', (payload) => {
           "seasonNumber": 1,
           "seriesTitle": "Series Title",
           "seriesId": "series-uuid",
-          "posterUrl": "https://cdn.example.com/posters/series-uuid.jpg"
+          "posterUrl": "https://cdn.example.com/posters/series-uuid.jpg",
+          "backdropUrl": "https://cdn.example.com/backdrops/series-uuid.jpg"
         }
       }
     ],
@@ -1566,6 +1569,31 @@ GET /api/users/me/profiles/:profileId/watch-later/check?contentType=episode&epis
     "addedAt": "2025-01-15T10:30:00.000Z"
   }
 }</code></pre>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">GET</span>
+                        <span class="endpoint-path">/api/users/me/profiles/:profileId/watch-later/ids</span>
+                    </div>
+                    <div class="endpoint-description">Get all watch later content IDs with content types (lightweight, for bulk status checking)</div>
+                    <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span></p>
+                    <div class="info-box" style="margin-top: 0.5rem; margin-bottom: 1rem;">
+                        <strong>Use Case:</strong> Call this endpoint once on page load to get all watch-later IDs, then use the list to mark content cards with an &quot;Added to Watch Later&quot; indicator &mdash; no need to call <code>/check</code> for every item individually.
+                    </div>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": [
+    { "contentId": "movie-uuid", "contentType": "movie" },
+    { "contentId": "series-uuid", "contentType": "series" },
+    { "contentId": "episode-uuid", "contentType": "episode" },
+    { "contentId": "short-film-uuid", "contentType": "short_film" }
+  ]
+}</code></pre>
+                    <div class="info-box" style="margin-top: 1rem;">
+                        <strong>Note:</strong> The <code>contentId</code> field contains the relevant ID regardless of content type &mdash; it maps to <code>contentId</code> for movies/short films/documentaries/BTS/reels, <code>seriesId</code> for series, and <code>episodeId</code> for episodes. Use the <code>contentType</code> field to determine which type of ID it is.
+                    </div>
                 </div>
 
                 <div class="endpoint">
@@ -3651,6 +3679,7 @@ GET /api/content/trending?type=movie&maxContentRating=PG-13&timeWindow=30d</code
   "data": {
     "sessionToken": "session-token-xxxxx",
     "streamUrl": "https://stream.vaki-ott.com/content/movie-uuid/playlist.m3u8",
+    "seekbarThumbnailUrl": "https://customer-xyz.cloudflarestream.com/eyJhbGciOiJSUzI1NiIs.../thumbnails/thumbnail.jpg?time=0s&height=100&imageCount=33&duration=360s",
     "expiresAt": "2025-01-15T11:00:00.000Z",
     "heartbeatInterval": 30000, // in milliseconds (e.g., 30000 = 30 seconds)
     "deviceCategory": "mobile",
@@ -3666,6 +3695,16 @@ GET /api/content/trending?type=movie&maxContentRating=PG-13&timeWindow=30d</code
     }
   }
 }</code></pre>
+                    <div class="info-box" style="margin-top: 1rem;">
+                        <strong>Seekbar Thumbnail Preview:</strong> The <code>seekbarThumbnailUrl</code> returns a Cloudflare Stream storyboard sprite sheet URL for seek bar thumbnail previews. The URL uses a <strong>signed JWT token</strong> in the path (same as <code>streamUrl</code>) since videos require signed URLs. The URL is dynamically generated based on the video's total duration:
+                        <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
+                            <li>The signed token has a <strong>4-hour expiry</strong> (default). Request a new stream session to get a fresh URL.</li>
+                            <li><code>imageCount=33</code> — The sprite sheet contains 33 thumbnail images</li>
+                            <li><code>duration</code> — Calculated as <code>ceil(videoDuration / 33)</code> so the thumbnails span the entire video</li>
+                            <li><code>height=100</code> — Thumbnail height in pixels (compact for seek bar use)</li>
+                            <li>Returns <code>null</code> if the Cloudflare Stream consumer domain is not configured or signing fails</li>
+                        </ul>
+                    </div>
                     <div class="info-box" style="margin-top: 1rem;">
                         <strong>Resume Playback:</strong> The response includes <code>lastWatchedPosition</code> and <code>lastWatchedAt</code> fields if the user has previously watched this content. Use <code>lastWatchedPosition</code> to resume playback from where the user left off. These fields will be <code>null</code> if there's no previous watch history or if the last position was less than 30 seconds.
                     </div>
