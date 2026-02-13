@@ -3775,12 +3775,7 @@ GET /api/content/trending?type=movie&maxContentRating=PG-13&timeWindow=30d</code
                                 <tr>
                                     <td><code>time</code></td>
                                     <td>string</td>
-                                    <td>Start time offset for this sprite sheet chunk (e.g. <code>0s</code>, <code>600s</code>). Increment by <code>duration</code> for each subsequent request.</td>
-                                </tr>
-                                <tr>
-                                    <td><code>height</code></td>
-                                    <td>number</td>
-                                    <td>Thumbnail height in pixels. Recommended: <code>100</code> for seek bar use.</td>
+                                    <td>Start time offset for this sprite sheet chunk (e.g. <code>0s</code>, <code>300s</code>). Increment by <code>duration</code> for each subsequent request.</td>
                                 </tr>
                                 <tr>
                                     <td><code>imageCount</code></td>
@@ -3790,7 +3785,7 @@ GET /api/content/trending?type=movie&maxContentRating=PG-13&timeWindow=30d</code
                                 <tr>
                                     <td><code>duration</code></td>
                                     <td>string</td>
-                                    <td>Time window covered by each sprite sheet (e.g. <code>600s</code>). Each sprite sheet covers this many seconds of video.</td>
+                                    <td>Time window covered by each sprite sheet (e.g. <code>300s</code>). Each sprite sheet covers this many seconds of video.</td>
                                 </tr>
                             </tbody>
                         </table>
@@ -3798,29 +3793,31 @@ GET /api/content/trending?type=movie&maxContentRating=PG-13&timeWindow=30d</code
                         <p>Given the video's total duration, loop and generate sprite sheet URLs until the entire video is covered:</p>
                         <pre style="margin-top: 0.5rem;"><code class="language-javascript">// seekbarThumbnailUrl from stream/start response (base URL, no query params)
 // videoDuration = total video duration in seconds (from player metadata or API)
-const SPRITE_DURATION = 600;  // seconds covered per sprite sheet
+const SPRITE_DURATION = 300;  // seconds covered per sprite sheet
 const IMAGE_COUNT = 33;       // thumbnails per sprite sheet
-const HEIGHT = 100;           // thumbnail height in pixels
 
 function generateSpriteSheetUrls(seekbarThumbnailUrl, videoDuration) {
   const urls = [];
   for (let time = 0; time < videoDuration; time += SPRITE_DURATION) {
-    const url = `${seekbarThumbnailUrl}?time=${time}s&height=${HEIGHT}&imageCount=${IMAGE_COUNT}&duration=${SPRITE_DURATION}s`;
+    const url = `${seekbarThumbnailUrl}?time=${time}s&imageCount=${IMAGE_COUNT}&duration=${SPRITE_DURATION}s`;
     urls.push(url);
   }
   return urls;
 }
 
-// Example: 1800-second (30 min) video generates 3 sprite sheet URLs:
-// 1. .../thumbnails/thumbnail.jpg?time=0s&height=100&imageCount=33&duration=600s
-// 2. .../thumbnails/thumbnail.jpg?time=600s&height=100&imageCount=33&duration=600s
-// 3. .../thumbnails/thumbnail.jpg?time=1200s&height=100&imageCount=33&duration=600s</code></pre>
+// Example: 1800-second (30 min) video generates 6 sprite sheet URLs:
+// 1. .../thumbnails/thumbnail.jpg?time=0s&imageCount=33&duration=300s
+// 2. .../thumbnails/thumbnail.jpg?time=300s&imageCount=33&duration=300s
+// 3. .../thumbnails/thumbnail.jpg?time=600s&imageCount=33&duration=300s
+// 4. .../thumbnails/thumbnail.jpg?time=900s&imageCount=33&duration=300s
+// 5. .../thumbnails/thumbnail.jpg?time=1200s&imageCount=33&duration=300s
+// 6. .../thumbnails/thumbnail.jpg?time=1500s&imageCount=33&duration=300s</code></pre>
                         <h5 style="margin-top: 1rem;">Notes:</h5>
                         <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
                             <li>The signed token has a <strong>4-hour expiry</strong> (default). Request a new stream session to get a fresh URL.</li>
-                            <li>Each sprite sheet covers <code>SPRITE_DURATION</code> seconds of video with <code>IMAGE_COUNT</code> evenly-spaced thumbnails.</li>
+                            <li>Each sprite sheet covers <code>SPRITE_DURATION</code> (300s) of video with <code>IMAGE_COUNT</code> (33) evenly-spaced thumbnails.</li>
                             <li>The last sprite sheet may cover less than the full <code>duration</code> if the video doesn't divide evenly — Cloudflare handles this gracefully.</li>
-                            <li>Preload sprite sheets lazily (e.g., load the current chunk on seek bar hover) to avoid unnecessary bandwidth.</li>
+                            <li>All sprite sheets should be preloaded when the stream starts for instant seekbar previews. First-time generation by Cloudflare may take up to 60 seconds; subsequent loads are fast due to CF caching.</li>
                             <li>Returns <code>null</code> if the Cloudflare Stream consumer domain is not configured or signing fails.</li>
                         </ul>
                     </div>
