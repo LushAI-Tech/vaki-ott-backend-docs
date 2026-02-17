@@ -608,6 +608,7 @@
                 <div class="nav-section">
                     <div class="nav-section-title">Payment Service</div>
                     <a href="#payments-api" class="nav-link sub">Payments & Rentals</a>
+                    <a href="#payments-qr-api" class="nav-link sub">QR Payments (TV &amp; Mobile)</a>
                 </div>
                 <div class="nav-section">
                     <div class="nav-section-title">Content Service</div>
@@ -2389,6 +2390,266 @@ GET /api/payments/rental-status/episode-uuid?type=episode</code></pre>
 
                 <div class="info-box" style="margin-top: 1rem;">
                     <strong>Rental Duration:</strong> Rentals typically last 48 hours (configurable per content). There's a grace period after expiration during which access may still be granted. Use the <code>rental-status</code> endpoint to check current access status.
+                </div>
+            </section>
+
+            <!-- Payment Service: QR Payments (TV & Mobile) -->
+            <section id="payments-qr-api" class="section">
+                <h2>QR Payments (TV &amp; Mobile)</h2>
+                <p>Cross-device payment flow for TV apps. The TV displays a QR code containing a raw payment token, the user scans it with the logged-in mobile app, completes the Razorpay checkout on the phone, and the TV receives real-time updates over WebSockets.</p>
+
+                <div class="info-box" style="margin-bottom: 1.5rem;">
+                    <strong>Use this when:</strong>
+                    <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
+                        <li>User is on a TV app and cannot enter card or UPI details easily.</li>
+                        <li>Payment should be tied to the TV user's account, but completed on the mobile app.</li>
+                        <li>You want real-time feedback on the TV (scanned / paying / completed) without manual refresh.</li>
+                    </ul>
+                </div>
+
+                <h3>End-to-End Workflow</h3>
+                <ol>
+                    <li>TV calls <code>POST /api/payments/qr/generate</code> to create a QR payment session and display the raw token as a QR code.</li>
+                    <li>TV connects to the <code>/qr-payment</code> Socket.IO namespace (using <code>wsUrl</code>) and joins the session room.</li>
+                    <li>Mobile app scans the QR token and calls <code>POST /api/payments/qr/claim</code> to claim the session and fetch payment details.</li>
+                    <li>Mobile app calls <code>POST /api/payments/qr/pay</code> to create a Razorpay order, then opens the Razorpay SDK.</li>
+                    <li>After Razorpay success, mobile app calls <code>POST /api/payments/qr/verify</code> to finalize the payment.</li>
+                    <li>TV receives <code>payment-status</code> events over WebSocket (claimed → paying → completed) and updates the UI accordingly.</li>
+                </ol>
+
+                <div class="info-box" style="margin-top: 1rem; margin-bottom: 2rem;">
+                    <strong>Statuses:</strong>
+                    <p>The QR payment session transitions through the following states, which are pushed to TV clients via WebSocket:</p>
+                    <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
+                        <li><code>pending</code>: Session created, waiting to be scanned.</li>
+                        <li><code>claimed</code>: QR scanned on mobile, confirmation and payment UI shown on phone.</li>
+                        <li><code>paying</code>: Razorpay SDK checkout in progress on phone.</li>
+                        <li><code>completed</code>: Payment verified, subscription or rental activated for the TV user.</li>
+                        <li><code>expired</code>: Session expired (TV should prompt to generate a new QR).</li>
+                        <li><code>cancelled</code>: Session cancelled from TV or mobile.</li>
+                    </ul>
+                </div>
+
+                <h3>TV Integration</h3>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-post">POST</span>
+                        <span class="endpoint-path">/api/payments/qr/generate</span>
+                    </div>
+                    <div class="endpoint-description">Generate a QR payment session (TV-side)</div>
+                    <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span> (TV user must be logged in)</p>
+                    <h4>Request Body (Subscription):</h4>
+                    <pre><code class="language-json">{
+  "paymentType": "subscription",
+  "planId": "monthly" // or plan UUID from /subscription/plans
+}</code></pre>
+                    <h4>Request Body (Rental):</h4>
+                    <pre><code class="language-json">{
+  "paymentType": "rental",
+  "contentId": "movie-uuid",
+  "contentType": "movie", // "movie" | "series"
+  "durationHours": 24     // optional, defaults to 24
+}</code></pre>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "message": "QR payment session created",
+  "data": {
+    "sessionId": "session-uuid",
+    "token": "raw-token-to-encode-as-qr",
+    "wsUrl": "https://api.vaki-ott.com/qr-payment",
+    "expiresIn": 600,
+    "expiresAt": "2025-01-15T10:40:00.000Z"
+  }
+}</code></pre>
+                    <div class="info-box">
+                        <strong>TV UI:</strong> Encode <code>data.token</code> into a QR code image and render it on screen. Use <code>wsUrl</code> and <code>sessionId</code> to connect to WebSocket and listen for status updates.
+                    </div>
+                </div>
+
+                <h4>TV WebSocket Connection</h4>
+                <p>Connect to the <code>/qr-payment</code> namespace using the provided <code>wsUrl</code> and join the session room:</p>
+                <pre><code class="language-javascript">import { io } from 'socket.io-client';
+
+const socket = io(wsUrl, {
+  transports: ['websocket', 'polling'],
+});
+
+socket.on('connect', () => {
+  socket.emit('join-payment-session', { sessionId });
+});
+
+socket.on('payment-connected', (payload) => {
+  console.log('Joined payment session', payload.status);
+});
+
+socket.on('payment-status', (payload) => {
+  console.log('Payment status update:', payload.status, payload);
+  // Update TV UI based on payload.status:
+  // - pending / claimed / paying / completed / expired / cancelled
+});
+
+socket.on('payment-error', (payload) => {
+  console.error('Payment session error', payload.message);
+});</code></pre>
+                <div class="info-box">
+                    <strong>Polling Fallback:</strong> If WebSockets are unavailable, poll <code>GET /api/payments/qr/:sessionId/status</code> to get the current status.
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">GET</span>
+                        <span class="endpoint-path">/api/payments/qr/:sessionId/status</span>
+                    </div>
+                    <div class="endpoint-description">Get QR payment session status (TV polling fallback)</div>
+                    <p><strong>Access:</strong> Public</p>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "sessionId": "session-uuid",
+    "status": "pending",
+    "paymentType": "rental",
+    "paymentId": null,
+    "expiresAt": "2025-01-15T10:40:00.000Z"
+  }
+}</code></pre>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-delete">DELETE</span>
+                        <span class="endpoint-path">/api/payments/qr/:sessionId</span>
+                    </div>
+                    <div class="endpoint-description">Cancel a QR payment session (TV-side)</div>
+                    <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span></p>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "message": "QR payment session cancelled",
+  "data": {
+    "sessionId": "session-uuid",
+    "status": "cancelled"
+  }
+}</code></pre>
+                </div>
+
+                <h3>Mobile App Integration</h3>
+                <p>The mobile app is responsible for scanning the QR token, confirming the purchase with the user, creating the Razorpay order, and verifying the payment.</p>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-post">POST</span>
+                        <span class="endpoint-path">/api/payments/qr/claim</span>
+                    </div>
+                    <div class="endpoint-description">Claim a QR payment session (after scanning)</div>
+                    <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span> (mobile user must be logged in)</p>
+                    <h4>Request Body:</h4>
+                    <pre><code class="language-json">{
+  "token": "raw-token-from-qr"
+}</code></pre>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "message": "QR payment session claimed",
+  "data": {
+    "sessionId": "session-uuid",
+    "paymentType": "rental",
+    "content": {
+      "id": "movie-uuid",
+      "title": "Movie Title",
+      "contentType": "movie",
+      "rentalPrice24h": 14900
+    },
+    "durationHours": 24
+  }
+}</code></pre>
+                    <div class="info-box">
+                        <strong>Mobile UI:</strong> Use the returned <code>plan</code> or <code>content</code> details to show a confirmation screen (title, price, duration) before starting payment.
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-post">POST</span>
+                        <span class="endpoint-path">/api/payments/qr/pay</span>
+                    </div>
+                    <div class="endpoint-description">Create a Razorpay order for a claimed QR session</div>
+                    <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span></p>
+                    <h4>Request Body:</h4>
+                    <pre><code class="language-json">{
+  "sessionId": "session-uuid"
+}</code></pre>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "paymentId": "payment-uuid",
+    "orderId": "order_xxxxx",
+    "keyId": "rzp_test_xxxxx",
+    "amount": 14900,
+    "currency": "INR",
+    "content": {
+      "id": "movie-uuid",
+      "title": "Movie Title",
+      "type": "movie"
+    },
+    "durationHours": 24
+  }
+}</code></pre>
+                    <div class="info-box">
+                        <strong>Razorpay SDK:</strong> Pass <code>orderId</code>, <code>amount</code>, <code>currency</code> and <code>keyId</code> into the Razorpay mobile SDK (same as the normal payments flow). After success, Razorpay returns <code>razorpay_order_id</code>, <code>razorpay_payment_id</code> and <code>razorpay_signature</code>.
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-post">POST</span>
+                        <span class="endpoint-path">/api/payments/qr/verify</span>
+                    </div>
+                    <div class="endpoint-description">Verify Razorpay payment and activate subscription or rental</div>
+                    <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span></p>
+                    <h4>Request Body:</h4>
+                    <pre><code class="language-json">{
+  "sessionId": "session-uuid",
+  "gatewayOrderId": "order_xxxxx",
+  "gatewayPaymentId": "pay_xxxxx",
+  "gatewaySignature": "signature_xxxxx"
+}</code></pre>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "payment": {
+      "id": "payment-uuid",
+      "userId": "tv-user-uuid",
+      "amount": 14900,
+      "currency": "INR",
+      "gateway": "razorpay",
+      "status": "completed",
+      "paidAt": "2025-01-15T10:35:00.000Z"
+    },
+    "rental": {
+      "id": "rental-uuid",
+      "expiresAt": "2025-01-17T10:35:00.000Z"
+    },
+    "message": "Payment verified and activated"
+  }
+}</code></pre>
+                    <div class="info-box">
+                        <strong>Ownership:</strong> The subscription or rental is always created for the TV user who generated the session, not the mobile account that paid. The mobile app just acts as the payment instrument.
+                    </div>
+                </div>
+
+                <div class="info-box warning" style="margin-top: 2rem;">
+                    <strong>TV &amp; Mobile Coordination Tips:</strong>
+                    <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
+                        <li>On TV, show a clear stepper: “1. Open Vaki app on phone → 2. Scan QR → 3. Complete payment on phone”.</li>
+                        <li>On mobile, prevent double-submission by disabling the pay button while calling <code>/qr/pay</code> and during Razorpay checkout.</li>
+                        <li>If <code>status</code> becomes <code>expired</code> or <code>cancelled</code>, TV should hide the QR and prompt to generate a new one.</li>
+                        <li>Use the existing payment history and rental-status endpoints to show the updated access state after a successful QR payment.</li>
+                    </ul>
                 </div>
             </section>
 
