@@ -599,7 +599,7 @@
                     <a href="#authentication" class="nav-link">Authentication</a>
                 </div>
                 <div class="nav-section">
-                    <div class="nav-section-title">User Service</div>
+                    <div class="nav-section-title">Identity Service</div>
                     <a href="#otp-api" class="nav-link sub">OTP API</a>
                     <a href="#auth-api" class="nav-link sub">Authentication</a>
                     <a href="#qr-auth-api" class="nav-link sub">QR Auth (TV)</a>
@@ -608,6 +608,7 @@
                 <div class="nav-section">
                     <div class="nav-section-title">Payment Service</div>
                     <a href="#payments-api" class="nav-link sub">Payments & Rentals</a>
+                    <a href="#payments-in-app-api" class="nav-link sub">In-App Purchases</a>
                     <a href="#payments-qr-api" class="nav-link sub">QR Payments (TV &amp; Mobile)</a>
                 </div>
                 <div class="nav-section">
@@ -628,7 +629,7 @@
             <!-- Overview -->
             <section id="overview" class="section">
                 <h1>Frontend Integration Guide</h1>
-                <p>This guide provides essential API documentation for frontend developers integrating with the Vaki OTT Platform. It focuses on the <strong>Content Service</strong> and <strong>User Service</strong> routes that are most commonly used by frontend applications.</p>
+                <p>This guide provides essential API documentation for frontend developers integrating with the Vaki OTT Platform. It follows the current three-service backend: <strong>Identity Service</strong>, <strong>Content Service</strong>, and <strong>Payment Service</strong>.</p>
                 
                 <div class="info-box">
                     <strong>Note:</strong> This documentation covers only the essential endpoints for frontend integration. For complete API documentation, see the main documentation.
@@ -643,10 +644,9 @@
                 <div class="info-box">
                     <strong>Route Prefixes:</strong>
                     <ul>
-                        <li><strong>User Service:</strong> Routes are mounted directly (e.g., <code>/api/auth</code>, <code>/api/otp</code>, <code>/api/users</code>)</li>
+                        <li><strong>Identity Service:</strong> Owns auth, OTP, user, profile, QR auth, and admin routes (e.g., <code>/api/auth</code>, <code>/api/otp</code>, <code>/api/users</code>, <code>/api/admin</code>)</li>
                         <li><strong>Payment Service:</strong> Routes are prefixed with <code>/api/payments</code> (e.g., <code>/api/payments/create</code>, <code>/api/payments/rentals/active</code>)</li>
                         <li><strong>Content Service:</strong> Routes are prefixed with <code>/api/content/</code> (e.g., <code>/api/content/movies</code>, <code>/api/content/reels</code>, <code>/api/content/sections</code>)</li>
-                        <li><strong>Admin Service:</strong> Routes are prefixed with <code>/api/admin/</code> (e.g., <code>/api/admin/movies</code>)</li>
                     </ul>
                 </div>
             </section>
@@ -665,7 +665,7 @@
                 <p>Access tokens expire after a set period. Use the refresh token to obtain a new access token without requiring the user to log in again.</p>
             </section>
 
-            <!-- User Service: OTP API -->
+            <!-- Identity Service: OTP API -->
             <section id="otp-api" class="section">
                 <h2>OTP API</h2>
                 <p>Request and verify OTP (One-Time Password) for user authentication via email or SMS.</p>
@@ -676,7 +676,7 @@
                         <span class="endpoint-path">/api/otp/email</span>
                     </div>
                     <div class="info-box" style="margin-top: 0.5rem; margin-bottom: 1rem;">
-                        <strong>Note:</strong> User Service routes (OTP, Auth, Users) are mounted directly without service prefix.
+                        <strong>Note:</strong> Identity Service owns OTP, auth, users, profiles, QR auth, and admin APIs.
                     </div>
                     <div class="endpoint-description">Request an OTP via email</div>
                     <h4>Request Body:</h4>
@@ -732,7 +732,7 @@
                 </div>
             </section>
 
-            <!-- User Service: Auth API -->
+            <!-- Identity Service: Auth API -->
             <section id="auth-api" class="section">
                 <h2>Authentication API</h2>
                 <p>Handle user login, token refresh, logout, and session management.</p>
@@ -951,7 +951,7 @@
                 </div>
             </section>
 
-            <!-- User Service: QR Auth API -->
+            <!-- Identity Service: QR Auth API -->
             <section id="qr-auth-api" class="section">
                 <h2>QR Auth API (TV)</h2>
                 <p>Cross-device login for TV apps using a mobile phone. The TV displays a QR code, the user scans it with the mobile app (where they are logged in), and approves the login. Tokens are delivered to the TV in real-time over WebSockets.</p>
@@ -1092,7 +1092,7 @@ socket.on('qr-status', (payload) => {
                 </div>
             </section>
 
-            <!-- User Service: Users API -->
+            <!-- Identity Service: Users API -->
             <section id="users-api" class="section">
                 <h2>Users & Profiles API</h2>
                 <p>Manage user account settings and OTT profiles.</p>
@@ -1633,7 +1633,7 @@ GET /api/users/me/profiles/:profileId/watch-later/check?contentType=episode&epis
             <!-- Payment Service: Payments & Rentals API -->
             <section id="payments-api" class="section">
                 <h2>Payments & Rentals API</h2>
-                <p>Handle payment processing for content rentals and subscriptions. Supports RazorPay and Apple Pay gateways.</p>
+                <p>Handle payment processing for content rentals and subscriptions. Supports RazorPay and Apple in-app purchase flows where configured.</p>
                 <div class="info-box" style="margin-bottom: 1.5rem;">
                     <strong>Route Prefix:</strong> All Payment Service routes are prefixed with <code>/api/payments</code>
                 </div>
@@ -1731,6 +1731,9 @@ GET /api/payments/pricing/episode/episode-uuid</code></pre>
     "currency": "INR"
   }
 }</code></pre>
+                    <div class="info-box">
+                        <strong>Note:</strong> <code>apple_pay</code> is advertised for compatibility with existing clients. Use the dedicated <code>/api/payments/in-app/*</code> routes for App Store and Play Store purchase flows.
+                    </div>
                 </div>
 
                 <div class="endpoint">
@@ -1987,7 +1990,7 @@ GET /api/payments/pricing/episode/episode-uuid</code></pre>
                                 <td><code>platform</code></td>
                                 <td>string</td>
                                 <td>No</td>
-                                <td>Platform: <code>web</code>, <code>ios</code>, or <code>android</code>. Used for gateway selection (Apple Pay for iOS users from USA).</td>
+                                <td>Platform: <code>web</code>, <code>ios</code>, or <code>android</code>. Used for gateway/provider selection.</td>
                             </tr>
                         </tbody>
                     </table>
@@ -1997,9 +2000,9 @@ GET /api/payments/pricing/episode/episode-uuid</code></pre>
   "data": {
     "paymentId": "payment-uuid",
     "amount": 5000, // in paisa (INR) or cents (USD)
-    "currency": "INR", // or "USD" for Apple Pay
-    "gateway": "razorpay", // or "apple_pay"
-    "gatewayOrderId": "order_xxxxx", // RazorPay order ID (null for Apple Pay)
+    "currency": "INR",
+    "gateway": "razorpay",
+    "gatewayOrderId": "order_xxxxx",
     "paymentData": {
       "orderId": "order_xxxxx",
       "amount": 5000,
@@ -2018,8 +2021,7 @@ GET /api/payments/pricing/episode/episode-uuid</code></pre>
                         <strong>Payment Gateway Selection:</strong>
                         <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
                             <li><strong>RazorPay:</strong> Used by default for all users (INR currency)</li>
-                            <li><strong>Apple Pay:</strong> Automatically selected for iOS users from USA (USD currency)</li>
-                            <li>For Apple Pay, <code>paymentData.requiresClientSidePayment</code> will be <code>true</code> - you'll need to handle the payment on the client side</li>
+                            <li><strong>Apple IAP:</strong> Use the dedicated <code>/api/payments/in-app/*</code> endpoints for App Store purchase flows where enabled.</li>
                         </ul>
                         <p style="margin-top: 0.5rem;"><strong>Note:</strong> RazorPay receipt format is <code>r_&lt;payment-id&gt;</code> (max 40 characters as per RazorPay requirements).</p>
                     </div>
@@ -2050,10 +2052,10 @@ GET /api/payments/pricing/episode/episode-uuid</code></pre>
   "gatewayPaymentId": "pay_xxxxx",
   "gatewaySignature": "signature_xxxxx"
 }</code></pre>
-                    <p>For Apple Pay:</p>
+                    <p>For Apple IAP, use the dedicated <code>/api/payments/in-app/verify</code> endpoint instead of this RazorPay verification endpoint.</p>
                     <pre><code class="language-json">{
   "paymentId": "payment-uuid",
-  "gatewayPaymentId": "transaction_id_xxxxx"
+  "storeTransactionId": "apple-transaction-id"
 }</code></pre>
                     <h4>Response:</h4>
                     <pre><code class="language-json">{
@@ -2371,7 +2373,7 @@ GET /api/payments/rental-status/episode-uuid?type=episode</code></pre>
                     <strong>Payment Flow:</strong>
                     <ol style="margin-top: 0.5rem; margin-left: 1.5rem;">
                         <li>Call <code>POST /api/payments/create</code> to create a payment order</li>
-                        <li>Use the returned <code>paymentData</code> to initiate payment with the gateway (RazorPay or Apple Pay)</li>
+                        <li>Use the returned <code>paymentData</code> to initiate RazorPay checkout, or use the in-app purchase endpoints for Apple IAP flows</li>
                         <li>After successful payment on the gateway, call <code>POST /api/payments/verify</code> with the payment details</li>
                         <li>The verify endpoint creates a rental record and grants access to the content</li>
                         <li>Use <code>GET /api/payments/rental-status/:contentId</code> to check if content is accessible</li>
@@ -2390,6 +2392,181 @@ GET /api/payments/rental-status/episode-uuid?type=episode</code></pre>
 
                 <div class="info-box" style="margin-top: 1rem;">
                     <strong>Rental Duration:</strong> Rentals typically last 48 hours (configurable per content). There's a grace period after expiration during which access may still be granted. Use the <code>rental-status</code> endpoint to check current access status.
+                </div>
+            </section>
+
+            <!-- Payment Service: In-App Purchases -->
+            <section id="payments-in-app-api" class="section">
+                <h2>In-App Purchases</h2>
+                <p>Consumable store purchase flow for mobile clients. These endpoints create a pending purchase, let the native store SDK complete the transaction, then verify and fulfill the purchase into a rental.</p>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">GET</span>
+                        <span class="endpoint-path">/api/payments/in-app/products</span>
+                    </div>
+                    <div class="endpoint-description">List active in-app products</div>
+                    <p><strong>Access:</strong> Public (no authentication required)</p>
+                    <h4>Query Parameters:</h4>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Required</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>platform</code></td>
+                                <td>string</td>
+                                <td>No</td>
+                                <td>Optional filter: <code>ios</code> or <code>android</code>. Products with platform <code>all</code> are included.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "data": {
+    "products": [
+      {
+        "id": "product-uuid",
+        "productId": "com.vakiottservice.ios.movie_id",
+        "name": "48 Hour Rental",
+        "description": "Movie rental",
+        "priceInSmallestUnit": 9900,
+        "currency": "INR",
+        "platform": "ios",
+        "isActive": true,
+        "syncStatus": "synced",
+        "lastSyncedAt": "2026-07-09T10:30:00.000Z",
+        "syncError": null,
+        "metadata": {
+          "contentType": "movie",
+          "movieId": "movie-uuid",
+          "durationHours": 48
+        },
+        "createdAt": "2026-07-09T10:30:00.000Z",
+        "updatedAt": "2026-07-09T10:30:00.000Z"
+      }
+    ]
+  }
+}</code></pre>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-post">POST</span>
+                        <span class="endpoint-path">/api/payments/in-app/purchase</span>
+                    </div>
+                    <div class="endpoint-description">Create a pending in-app purchase record</div>
+                    <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span></p>
+                    <h4>Request Body:</h4>
+                    <pre><code class="language-json">{
+  "productId": "product-uuid",
+  "platform": "ios",
+  "quantity": 1
+}</code></pre>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "message": "Purchase initiated",
+  "data": {
+    "purchase": {
+      "id": "purchase-uuid",
+      "productId": "product-uuid",
+      "storeProductId": "com.vakiottservice.ios.movie_id",
+      "platform": "ios",
+      "quantity": 1,
+      "amount": 9900,
+      "currency": "INR",
+      "status": "pending"
+    }
+  }
+}</code></pre>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-post">POST</span>
+                        <span class="endpoint-path">/api/payments/in-app/verify</span>
+                    </div>
+                    <div class="endpoint-description">Verify and fulfill a store transaction</div>
+                    <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span></p>
+                    <h4>Request Body:</h4>
+                    <pre><code class="language-json">{
+  "purchaseId": "purchase-uuid",
+  "storeTransactionId": "store-transaction-id",
+  "storeReceipt": "optional-receipt-payload"
+}</code></pre>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "message": "Purchase verified and fulfilled",
+  "data": {
+    "purchase": {
+      "id": "purchase-uuid",
+      "productId": "product-uuid",
+      "platform": "ios",
+      "quantity": 1,
+      "amount": 9900,
+      "currency": "INR",
+      "status": "completed",
+      "storeTransactionId": "store-transaction-id",
+      "purchasedAt": "2026-07-09T10:35:00.000Z"
+    }
+  }
+}</code></pre>
+                    <div class="info-box warning" style="margin-top: 1rem;">
+                        <strong>Receipt Validation:</strong> The current backend records and fulfills the store transaction after duplicate-transaction checks. Server-side Apple/Google receipt validation should be enabled when store credentials are configured.
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-get">GET</span>
+                        <span class="endpoint-path">/api/payments/in-app/history</span>
+                    </div>
+                    <div class="endpoint-description">Get the authenticated user's in-app purchase history</div>
+                    <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span></p>
+                    <h4>Query Parameters:</h4>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Parameter</th>
+                                <th>Type</th>
+                                <th>Required</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>page</code></td>
+                                <td>number</td>
+                                <td>No</td>
+                                <td>Page number. Defaults to <code>1</code>.</td>
+                            </tr>
+                            <tr>
+                                <td><code>limit</code></td>
+                                <td>number</td>
+                                <td>No</td>
+                                <td>Items per page. Defaults to <code>20</code>, maximum <code>100</code>.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="info-box warning" style="margin-top: 1rem;">
+                    <strong>In-App Purchase Flow:</strong>
+                    <ol style="margin-top: 0.5rem; margin-left: 1.5rem;">
+                        <li>Call <code>GET /api/payments/in-app/products?platform=ios</code> or <code>?platform=android</code>.</li>
+                        <li>Call <code>POST /api/payments/in-app/purchase</code> with the database product id.</li>
+                        <li>Use <code>storeProductId</code> with the native App Store or Play Store SDK.</li>
+                        <li>After the store transaction succeeds, call <code>POST /api/payments/in-app/verify</code>.</li>
+                        <li>The backend creates the payment and rental records when product metadata resolves to content.</li>
+                    </ol>
                 </div>
             </section>
 
@@ -2855,13 +3032,13 @@ socket.on('payment-error', (payload) => {
     },
     "trailerVideo": {
       "id": "stream-video-uuid",
-      "streamVideoId": "cloudflare-stream-id",
+      "streamVideoId": "bunny-video-guid",
       "movieId": "movie-uuid",
       "videoType": "Trailer",
-      "thumbnailUrl": "https://customer-xyz.cloudflarestream.com/.../thumbnails/thumbnail.jpg",
-      "previewUrl": "https://customer-xyz.cloudflarestream.com/.../watch",
-      "hlsUrl": "https://customer-xyz.cloudflarestream.com/.../manifest/video.m3u8",
-      "dashUrl": "https://customer-xyz.cloudflarestream.com/.../manifest/video.mpd",
+      "thumbnailUrl": "https://vz-example.b-cdn.net/bunny-video-guid/thumbnail.jpg",
+      "previewUrl": "https://iframe.mediadelivery.net/embed/library-id/bunny-video-guid",
+      "hlsUrl": "https://vz-example.b-cdn.net/bunny-video-guid/playlist.m3u8",
+      "dashUrl": null,
       "defaultQuality": "auto",
       "requiresAuth": true,
       "status": "ready"
@@ -3594,6 +3771,145 @@ GET /api/content/sections?context=home&platform=tv&showInactive=true</code></pre
                             </tr>
                         </tbody>
                     </table>
+
+                    <h4>Section "View All" Handling:</h4>
+                    <p>When a section has <code>showViewAll: true</code>, the frontend should display a "View All" button/link. On click, it should navigate to a view that shows <strong>all content</strong> matching the section's <code>queryConfig</code> — without the original <code>limit</code> constraint (the backend already strips <code>limit</code> from the returned <code>queryConfig</code>).</p>
+
+                    <h5>How It Works (by dataSourceType):</h5>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>dataSourceType</th>
+                                <th>View All Behavior</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><code>query</code></td>
+                                <td>Use the section's <code>queryConfig.filters</code> and <code>queryConfig.sort</code> to query the <code>/api/content/movies</code> (or <code>/api/content/series</code>) endpoint with pagination. Map filter fields to the corresponding query parameters (e.g., <code>genreSlugs</code>, <code>minYear</code>, <code>maxYear</code>, <code>languageCode</code>, <code>sortField</code>, <code>sortDirection</code>).</td>
+                            </tr>
+                            <tr>
+                                <td><code>trending</code></td>
+                                <td>Navigate to <code>/api/content/trending</code> with the trending config parameters (<code>timeWindow</code>, <code>minWatchDuration</code>, <code>contentFilter</code>) and a higher limit or pagination.</td>
+                            </tr>
+                            <tr>
+                                <td><code>manual</code></td>
+                                <td>Manual sections have a fixed set of items curated by administrators. For "View All", the frontend can either display all items from the section's <code>movies</code> array in a grid (if the full set was returned), or fetch the section by slug with a higher limit.</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <h5>Frontend URL Construction:</h5>
+                    <p>The "View All" link should encode the section's <code>queryConfig</code> into URL query parameters so the destination page can re-fetch content with those filters applied:</p>
+<pre><code class="language-javascript">// Given a section object from the API response:
+function buildViewAllHref(section) {
+  const { context, slug, dataSourceType, queryConfig } = section;
+
+  // Base path based on context
+  const basePath = context === 'home' ? '/movies' : `/${context}`;
+
+  // Build query params from queryConfig
+  const params = new URLSearchParams();
+  params.set('section', slug);
+
+  if (dataSourceType === 'query' && queryConfig) {
+    const { filters, sort } = queryConfig;
+
+    // Map filters to query params
+    if (filters?.genreSlugs?.length) {
+      params.set('genreSlugs', filters.genreSlugs.join(','));
+    }
+    if (filters?.categorySlug) {
+      params.set('categorySlug', filters.categorySlug);
+    }
+    if (filters?.minYear) {
+      params.set('minYear', String(filters.minYear));
+    }
+    if (filters?.maxYear) {
+      params.set('maxYear', String(filters.maxYear));
+    }
+    if (filters?.languageId) {
+      params.set('languageCode', filters.languageId);
+    }
+    if (filters?.status) {
+      params.set('status', filters.status);
+    }
+    if (filters?.contentRatingId) {
+      params.set('contentRatingId', filters.contentRatingId);
+    }
+
+    // Map sort to query params
+    if (sort?.field) {
+      params.set('sortField', sort.field);
+    }
+    if (sort?.direction) {
+      params.set('sortDirection', sort.direction);
+    }
+  }
+
+  if (dataSourceType === 'trending' && queryConfig) {
+    // Encode trending config params
+    params.set('dataSource', 'trending');
+    if (queryConfig.timeWindow) {
+      params.set('timeWindow', queryConfig.timeWindow);
+    }
+    if (queryConfig.contentFilter) {
+      params.set('contentFilter', queryConfig.contentFilter);
+    }
+  }
+
+  return `${basePath}?${params.toString()}`;
+}
+
+// Example output for a query-based section:
+// /movies?section=action-movies&genreSlugs=action&minYear=2020&sortField=releaseDate&sortDirection=desc
+
+// Example output for a trending section:
+// /movies?section=trending-now&dataSource=trending&timeWindow=7d&contentFilter=both</code></pre>
+
+                    <h5>View All Page Behavior:</h5>
+                    <p>The destination page (e.g., <code>/movies</code>) should:</p>
+                    <ol style="margin-left: 1.5rem; margin-top: 0.5rem;">
+                        <li>Read the <code>section</code> query param to identify that this is a "View All" request</li>
+                        <li>Read the filter/sort query params and apply them to the content API call</li>
+                        <li>Display the section title as the page heading (can be passed via query param or looked up from cached sections)</li>
+                        <li>Show content in a paginated grid layout (not a carousel)</li>
+                        <li>For <strong>query-based</strong> sections: call <code>GET /api/content/movies?genreSlugs=...&sortField=...&page=1&limit=20</code></li>
+                        <li>For <strong>trending</strong> sections: call <code>GET /api/content/trending?timeWindow=7d&contentFilter=both&limit=50</code></li>
+                        <li>For <strong>manual</strong> sections: display all items from the cached section data in a grid</li>
+                    </ol>
+
+                    <h5>queryConfig Reference (returned in section response):</h5>
+<pre><code class="language-json">// For query-based sections (limit is stripped by backend):
+{
+  "filters": {
+    "genreSlugs": ["action", "thriller"],  // Filter by genre slugs
+    "categorySlug": "featured",             // Filter by content category
+    "minYear": 2020,                        // Minimum release year
+    "maxYear": 2025,                        // Maximum release year
+    "status": "published",                  // Content status filter
+    "languageId": "language-uuid",          // Filter by language
+    "contentRatingId": "rating-uuid"        // Filter by content rating
+  },
+  "sort": {
+    "field": "releaseDate",                 // Sort field: releaseDate, title, year, createdAt, popularityScore
+    "direction": "desc"                     // Sort direction: asc or desc
+  }
+  // Note: "limit" is intentionally excluded — the section display limit
+  // should NOT be applied to the View All page
+}
+
+// For trending sections:
+{
+  "timeWindow": "7d",         // Trending time window
+  "minWatchDuration": 60,     // Min watch seconds to count
+  "contentFilter": "both"     // "movie", "series", or "both"
+}</code></pre>
+
+                    <div class="info-box">
+                        <strong>Important:</strong> The backend intentionally strips the <code>limit</code> field from <code>queryConfig</code> before returning it in the section response. This is because the <code>limit</code> is only used to control how many items appear in the section carousel — it should <strong>not</strong> be applied when showing "View All" content. The View All page should use its own pagination (e.g., <code>page=1&limit=20</code>) when querying the content API.
+                    </div>
+
                     <h4>Trending Configuration:</h4>
                     <p>For sections with <code>dataSourceType: "trending"</code>, the <code>queryConfig</code> supports the following parameters:</p>
                     <table>
@@ -4003,8 +4319,8 @@ GET /api/content/trending?type=movie&maxContentRating=PG-13&timeWindow=30d</code
   "success": true,
   "data": {
     "sessionToken": "session-token-xxxxx",
-    "streamUrl": "https://stream.vaki-ott.com/content/movie-uuid/playlist.m3u8",
-    "seekbarThumbnailUrl": "https://customer-xyz.cloudflarestream.com/eyJhbGciOiJSUzI1NiIs.../thumbnails/thumbnail.jpg",
+    "streamUrl": "https://vz-example.b-cdn.net/bunny-video-guid/playlist.m3u8?token=...",
+    "seekbarThumbnailUrl": "https://vz-example.b-cdn.net/bunny-video-guid/seek",
     "expiresAt": "2025-01-15T11:00:00.000Z",
     "heartbeatInterval": 30000, // in milliseconds (e.g., 30000 = 30 seconds)
     "deviceCategory": "mobile",
@@ -4021,65 +4337,49 @@ GET /api/content/trending?type=movie&maxContentRating=PG-13&timeWindow=30d</code
   }
 }</code></pre>
                     <div class="info-box" style="margin-top: 1rem;">
-                        <strong>Seekbar Thumbnail Sprite Sheets:</strong> The <code>seekbarThumbnailUrl</code> is the <strong>base URL</strong> for generating Cloudflare Stream storyboard sprite sheets. It uses a <strong>signed JWT token</strong> in the path and does <strong>not</strong> include query parameters — the frontend must append them.
-                        <p style="margin-top: 0.75rem;"><strong>How it works:</strong> Each sprite sheet image contains <code>imageCount</code> thumbnail frames covering a <code>duration</code> window. To get thumbnails for the entire video, the frontend generates multiple sprite sheet URLs by incrementing the <code>time</code> parameter.</p>
-                        <h5 style="margin-top: 1rem;">Query Parameters (appended by frontend):</h5>
+                        <strong>Seekbar Thumbnail Sprite Sheets:</strong> The <code>seekbarThumbnailUrl</code> is the Bunny Stream seek-thumbnail directory returned by the backend. Build individual sprite-sheet URLs by appending the sheet file name, such as <code>_0.jpg</code>, <code>_1.jpg</code>, and so on.
+                        <p style="margin-top: 0.75rem;"><strong>How it works:</strong> Bunny generates seek thumbnail sheets under the video's <code>/seek/</code> directory. The backend returns that directory as <code>seekbarThumbnailUrl</code>. The frontend should request sheets from that base path and refresh playback media URLs on heartbeat when <code>streamUrl</code> is returned.</p>
+                        <h5 style="margin-top: 1rem;">Generated Files</h5>
                         <table style="margin-top: 0.5rem;">
                             <thead>
                                 <tr>
-                                    <th>Parameter</th>
-                                    <th>Type</th>
+                                    <th>File</th>
                                     <th>Description</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td><code>time</code></td>
-                                    <td>string</td>
-                                    <td>Start time offset for this sprite sheet chunk (e.g. <code>0s</code>, <code>300s</code>). Increment by <code>duration</code> for each subsequent request.</td>
+                                    <td><code>_0.jpg</code></td>
+                                    <td>First seek thumbnail sheet.</td>
                                 </tr>
                                 <tr>
-                                    <td><code>imageCount</code></td>
-                                    <td>number</td>
-                                    <td>Number of thumbnail frames per sprite sheet. Recommended: <code>33</code>.</td>
+                                    <td><code>_1.jpg</code>, <code>_2.jpg</code>, ...</td>
+                                    <td>Additional seek thumbnail sheets when Bunny creates more than one sheet for longer videos.</td>
                                 </tr>
                                 <tr>
-                                    <td><code>duration</code></td>
-                                    <td>string</td>
-                                    <td>Time window covered by each sprite sheet (e.g. <code>300s</code>). Each sprite sheet covers this many seconds of video.</td>
+                                    <td><code>seekbarThumbnailUrl</code></td>
+                                    <td>Directory URL returned by the backend, ending with <code>/seek/</code>.</td>
                                 </tr>
                             </tbody>
                         </table>
                         <h5 style="margin-top: 1rem;">Frontend Implementation:</h5>
-                        <p>Given the video's total duration, loop and generate sprite sheet URLs until the entire video is covered:</p>
-                        <pre style="margin-top: 0.5rem;"><code class="language-javascript">// seekbarThumbnailUrl from stream/start response (base URL, no query params)
-// videoDuration = total video duration in seconds (from player metadata or API)
-const SPRITE_DURATION = 300;  // seconds covered per sprite sheet
-const IMAGE_COUNT = 33;       // thumbnails per sprite sheet
-
-function generateSpriteSheetUrls(seekbarThumbnailUrl, videoDuration) {
-  const urls = [];
-  for (let time = 0; time < videoDuration; time += SPRITE_DURATION) {
-    const url = `${seekbarThumbnailUrl}?time=${time}s&imageCount=${IMAGE_COUNT}&duration=${SPRITE_DURATION}s`;
-    urls.push(url);
-  }
-  return urls;
+                        <p>Start by loading the first sheet and lazily try additional sheets only if the player UI needs them:</p>
+                        <pre style="margin-top: 0.5rem;"><code class="language-javascript">// seekbarThumbnailUrl from stream/start response, for example:
+// https://vz-example.b-cdn.net/bunny-video-guid/seek/
+function getBunnySeekSheetUrl(seekbarThumbnailUrl, sheetIndex = 0) {
+  const base = seekbarThumbnailUrl.endsWith('/')
+    ? seekbarThumbnailUrl
+    : `${seekbarThumbnailUrl}/`;
+  return `${base}_${sheetIndex}.jpg`;
 }
 
-// Example: 1800-second (30 min) video generates 6 sprite sheet URLs:
-// 1. .../thumbnails/thumbnail.jpg?time=0s&imageCount=33&duration=300s
-// 2. .../thumbnails/thumbnail.jpg?time=300s&imageCount=33&duration=300s
-// 3. .../thumbnails/thumbnail.jpg?time=600s&imageCount=33&duration=300s
-// 4. .../thumbnails/thumbnail.jpg?time=900s&imageCount=33&duration=300s
-// 5. .../thumbnails/thumbnail.jpg?time=1200s&imageCount=33&duration=300s
-// 6. .../thumbnails/thumbnail.jpg?time=1500s&imageCount=33&duration=300s</code></pre>
+const firstSeekSheet = getBunnySeekSheetUrl(seekbarThumbnailUrl, 0);</code></pre>
                         <h5 style="margin-top: 1rem;">Notes:</h5>
                         <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
-                            <li>The signed token has a <strong>4-hour expiry</strong> (default). Request a new stream session to get a fresh URL.</li>
-                            <li>Each sprite sheet covers <code>SPRITE_DURATION</code> (300s) of video with <code>IMAGE_COUNT</code> (33) evenly-spaced thumbnails.</li>
-                            <li>The last sprite sheet may cover less than the full <code>duration</code> if the video doesn't divide evenly — Cloudflare handles this gracefully.</li>
-                            <li>All sprite sheets should be preloaded when the stream starts for instant seekbar previews. First-time generation by Cloudflare may take up to 60 seconds; subsequent loads are fast due to CF caching.</li>
-                            <li>Returns <code>null</code> if the Cloudflare Stream consumer domain is not configured or signing fails.</li>
+                            <li>Playback media uses Bunny signed URLs/tokens. If heartbeat returns a fresh <code>streamUrl</code>, switch future playback requests to that refreshed URL.</li>
+                            <li>Seek thumbnail availability depends on Bunny processing state; handle missing sheets gracefully.</li>
+                            <li>Do not use Cloudflare storyboard query parameters such as <code>time</code>, <code>imageCount</code>, or <code>duration</code>; they are not part of the current Bunny path.</li>
+                            <li>If the backend returns <code>null</code> for <code>seekbarThumbnailUrl</code>, hide seek previews or fall back to the poster image.</li>
                         </ul>
                     </div>
                     <div class="info-box" style="margin-top: 1rem;">
@@ -4119,7 +4419,39 @@ function generateSpriteSheetUrls(seekbarThumbnailUrl, videoDuration) {
   }
 }</code></pre>
                     <div class="info-box" style="margin-top: 1rem;">
-                        <strong>Heartbeat Requirements:</strong> Send heartbeat at the interval specified in <code>heartbeatInterval</code> (typically 30000 milliseconds / 30 seconds) during active playback. If heartbeat is not received for 90 seconds, the session expires. Rate limiting applies - too many requests will return <code>429 Too Many Requests</code>.
+                        <strong>Heartbeat Requirements:</strong> Send heartbeat at the interval specified in <code>heartbeatInterval</code> (typically 30000 milliseconds / 30 seconds) during active playback. If heartbeat is not received for 120 seconds by default, the session expires. Rate limiting applies - too many requests will return <code>429 Too Many Requests</code>.
+                    </div>
+                </div>
+
+                <div class="endpoint">
+                    <div class="endpoint-header">
+                        <span class="badge badge-post">POST</span>
+                        <span class="endpoint-path">/api/content/stream/telemetry/playback-error</span>
+                    </div>
+                    <div class="endpoint-description">Send best-effort frontend playback error telemetry for diagnostics</div>
+                    <p><strong>Headers:</strong> <span class="inline-code">Authorization: Bearer &lt;token&gt;</span></p>
+                    <h4>Request Body:</h4>
+                    <pre><code class="language-json">{
+  "sessionToken": "session-token-xxxxx",
+  "contentId": "movie-or-episode-uuid",
+  "contentType": "movie",
+  "errorCode": "MEDIA_ERR_NETWORK",
+  "errorMessage": "HLS segment failed to load",
+  "streamMode": "bunny-hls",
+  "deviceType": "web",
+  "browser": "Chrome"
+}</code></pre>
+                    <h4>Response:</h4>
+                    <pre><code class="language-json">{
+  "success": true,
+  "message": "Playback error telemetry accepted",
+  "data": {
+    "accepted": true,
+    "errorMessageTruncated": false
+  }
+}</code></pre>
+                    <div class="info-box" style="margin-top: 1rem;">
+                        <strong>Note:</strong> This endpoint is diagnostic only. It should not block playback cleanup, heartbeat, or retry behavior if the request fails.
                     </div>
                 </div>
 
@@ -4279,7 +4611,7 @@ function generateSpriteSheetUrls(seekbarThumbnailUrl, videoDuration) {
                 <div class="info-box" style="margin-top: 1rem;">
                     <strong>Session Management:</strong>
                     <ul style="margin-top: 0.5rem; margin-left: 1.5rem;">
-                        <li>Sessions expire after 90 seconds without heartbeat</li>
+                        <li>Sessions expire after 120 seconds without heartbeat by default</li>
                         <li>One stream per device category (mobile, tablet, TV, web)</li>
 
                         <li>Same device can reconnect - old session is automatically replaced</li>
@@ -5349,10 +5681,9 @@ async function rentContent(contentId, contentType = 'movie') {
       razorpay.open();
       
       return { paymentId, paymentData };
-    } else if (gateway === 'apple_pay') {
-      // Handle Apple Pay flow
-      // This requires Apple Pay JS SDK integration
-      return { paymentId, requiresClientSidePayment: true };
+    } else {
+      // Use /api/payments/in-app/* for Apple IAP flows when enabled.
+      return { paymentId, paymentData };
     }
   } catch (error) {
     console.error('Payment error:', error);
